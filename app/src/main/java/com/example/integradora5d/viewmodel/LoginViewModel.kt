@@ -20,6 +20,6 @@ class LoginViewModel : ViewModel() {
     }
 
     fun login() {
-        loginExitoso = (correo == "your.email@example.com" && contrasena == "1234")
+        loginExitoso = (correo == "alex@gmail.com" && contrasena == "1234")
     }
 }

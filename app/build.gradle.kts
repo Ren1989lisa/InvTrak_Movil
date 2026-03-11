@@ -51,6 +51,10 @@ dependencies {
 
     // ViewModel para Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    // navigation
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+    // iconos
+    implementation("androidx.compose.material:material-icons-extended")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
