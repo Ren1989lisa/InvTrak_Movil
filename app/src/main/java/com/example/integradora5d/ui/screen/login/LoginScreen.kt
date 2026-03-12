@@ -24,9 +24,9 @@ import com.example.integradora5d.viewmodel.LoginViewModel
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
+    onForgotPassword: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
-
     val loginExitoso = viewModel.loginExitoso
 
     LaunchedEffect(loginExitoso) {
@@ -47,14 +47,12 @@ fun LoginScreen(
                 )
             )
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Spacer(modifier = Modifier.height(40.dp))
 
             Image(
@@ -88,12 +86,9 @@ fun LoginScreen(
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
-
                 Column(
-                    modifier = Modifier
-                        .padding(20.dp)
+                    modifier = Modifier.padding(20.dp)
                 ) {
-
                     Text(
                         text = "Bienvenido",
                         fontSize = 20.sp,
@@ -127,13 +122,10 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     TextButton(
-                        onClick = { },
+                        onClick = { onForgotPassword() },
                         modifier = Modifier.align(Alignment.End)
                     ) {
-                        Text(
-                            "¿Olvidaste tu contraseña?",
-                            fontSize = 12.sp
-                        )
+                        Text("¿Olvidaste tu contraseña?", fontSize = 12.sp)
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -154,10 +146,7 @@ fun LoginScreen(
                     loginExitoso?.let {
                         if (!it) {
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                "Credenciales incorrectas",
-                                color = Color.Red
-                            )
+                            Text("Credenciales incorrectas", color = Color.Red)
                         }
                     }
                 }

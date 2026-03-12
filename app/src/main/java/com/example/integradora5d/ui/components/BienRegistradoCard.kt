@@ -11,9 +11,13 @@ import androidx.compose.ui.unit.dp
 import com.example.integradora5d.data.model.BienRegistrado
 
 @Composable
-fun BienRegistradoCard(bien: BienRegistrado) {
+fun BienRegistradoCard(
+    bien: BienRegistrado,
+    onClick: () -> Unit
+) {
 
     Card(
+        onClick = { onClick() },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)

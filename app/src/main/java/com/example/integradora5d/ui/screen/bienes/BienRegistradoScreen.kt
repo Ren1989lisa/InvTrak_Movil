@@ -15,17 +15,24 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.integradora5d.ui.components.BienRegistradoCard
+import com.example.integradora5d.ui.components.DrawerMenu
 import com.example.integradora5d.viewmodel.BienRegistradoViewModel
 import kotlin.math.ceil
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BienRegistradoScreen(
+    navController: NavController,
     viewModel: BienRegistradoViewModel = viewModel()
 ) {
 
     var busqueda by remember { mutableStateOf("") }
+
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     // PAGINACIÓN
     var paginaActual by remember { mutableStateOf(1) }
@@ -41,134 +48,163 @@ fun BienRegistradoScreen(
         .drop(inicio)
         .take(cardsPorPagina)
 
-    Scaffold(
+    ModalNavigationDrawer(
 
-        topBar = {
+        drawerState = drawerState,
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                Color(0xFF0A4174),
-                                Color(0xFF49769F)
-                            )
-                        )
-                    )
-            ) {
+        drawerContent = {
 
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Tus bienes",
-                            color = Color.White
-                        )
-                    },
-
-                    navigationIcon = {
-                        IconButton(onClick = { }) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu",
-                                tint = Color.White
-                            )
-                        }
-                    },
-
-                    actions = {
-
-                        Button(
-                            onClick = { },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.White
-                            ),
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
-
-                            Icon(
-                                imageVector = Icons.Default.Tune,
-                                contentDescription = "Filtro",
-                                tint = Color(0xFF0A4174)
-                            )
-
-                            Spacer(modifier = Modifier.width(4.dp))
-
-                            Text(
-                                text = "Filtro",
-                                color = Color(0xFF0A4174)
-                            )
-                        }
-
-                    },
-
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent
-                    )
-                )
-            }
+            DrawerMenu(
+                navController = navController,
+                currentRoute = "bienes"
+            )
         }
 
-    ) { padding ->
+    ) {
 
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
+        Scaffold(
 
-            // BUSCADOR
-            OutlinedTextField(
-                value = busqueda,
-                onValueChange = { busqueda = it },
-                modifier = Modifier.fillMaxWidth(),
+            topBar = {
 
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Buscar"
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color(0xFF0A4174),
+                                    Color(0xFF49769F)
+                                )
+                            )
+                        )
+                ) {
+
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text = "Tus bienes",
+                                color = Color.White
+                            )
+                        },
+
+                        navigationIcon = {
+
+                            IconButton(
+                                onClick = {
+                                    scope.launch {
+                                        drawerState.open()
+                                    }
+                                }
+                            ) {
+
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = "Menu",
+                                    tint = Color.White
+                                )
+                            }
+                        },
+
+                        actions = {
+
+                            Button(
+                                onClick = { },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.White
+                                ),
+                                modifier = Modifier.padding(end = 8.dp)
+                            ) {
+
+                                Icon(
+                                    imageVector = Icons.Default.Tune,
+                                    contentDescription = "Filtro",
+                                    tint = Color(0xFF0A4174)
+                                )
+
+                                Spacer(modifier = Modifier.width(4.dp))
+
+                                Text(
+                                    text = "Filtro",
+                                    color = Color(0xFF0A4174)
+                                )
+                            }
+                        },
+
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent
+                        )
                     )
                 }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // LISTA
-            LazyColumn(
-                modifier = Modifier.weight(1f)
-            ) {
-
-                items(bienesPagina) { bien ->
-                    BienRegistradoCard(bien)
-                }
-
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+        ) { padding ->
 
-            // PAGINACIÓN
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
 
-                Button(
-                    onClick = {
-                        if (paginaActual > 1) paginaActual--
+                OutlinedTextField(
+                    value = busqueda,
+                    onValueChange = { busqueda = it },
+                    modifier = Modifier.fillMaxWidth(),
+
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Buscar"
+                        )
                     }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LazyColumn(
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text("< Previous")
+
+                    items(bienesPagina) { bien ->
+
+                        BienRegistradoCard(
+                            bien = bien,
+                            onClick = {
+
+                                navController.currentBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set("bienSeleccionado", bien)
+
+                                navController.navigate("bien_detalle")
+                            }
+                        )
+                    }
                 }
 
-                Text("Página $paginaActual de $totalPaginas")
+                Spacer(modifier = Modifier.height(12.dp))
 
-                Button(
-                    onClick = {
-                        if (paginaActual < totalPaginas) paginaActual++
-                    }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Text("Next >")
+
+                    Button(
+                        onClick = {
+                            if (paginaActual > 1) paginaActual--
+                        }
+                    ) {
+                        Text("< Previous")
+                    }
+
+                    Text("Página $paginaActual de $totalPaginas")
+
+                    Button(
+                        onClick = {
+                            if (paginaActual < totalPaginas) paginaActual++
+                        }
+                    ) {
+                        Text("Next >")
+                    }
                 }
             }
         }
