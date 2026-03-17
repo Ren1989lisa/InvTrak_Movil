@@ -1,6 +1,5 @@
 package com.example.integradora5d.ui.components
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,7 +19,6 @@ fun DrawerItem(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -31,14 +29,11 @@ fun DrawerItem(
             .clickable { onClick() }
             .padding(12.dp)
     ) {
-
         Icon(
             imageVector = icon,
             contentDescription = label
         )
-
         Spacer(modifier = Modifier.width(12.dp))
-
         Text(text = label)
     }
 }

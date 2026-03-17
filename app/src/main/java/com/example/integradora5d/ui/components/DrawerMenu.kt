@@ -16,7 +16,6 @@ fun DrawerMenu(
     navController: NavController,
     currentRoute: String
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -24,7 +23,6 @@ fun DrawerMenu(
             .background(Color.White)
             .padding(16.dp)
     ) {
-
         Spacer(modifier = Modifier.height(20.dp))
 
         Text("Empleado")
@@ -59,12 +57,21 @@ fun DrawerMenu(
         }
 
         DrawerItem(
-            icon = Icons.Default.Warning,
-            label = "Reporte de Daño",
-            selected = currentRoute == "reporte"
+            icon = Icons.Default.People,
+            label = "Usuarios",
+            selected = currentRoute == "usuarios"
         ) {
-            navController.navigate("reporte")
+            navController.navigate("usuarios")
         }
+
+        DrawerItem(
+            icon = Icons.Default.QrCodeScanner,
+            label = "Escanear QR",
+            selected = currentRoute == "scanqr"
+        ) {
+            navController.navigate("scanqr")
+        }
+
 
         DrawerItem(
             icon = Icons.Default.History,
@@ -83,18 +90,16 @@ fun DrawerMenu(
                 }
             },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFCA4C4C)
+                containerColor = Color(0xFFCA4C4C),
+                contentColor = Color.White
             ),
             modifier = Modifier.fillMaxWidth()
         ) {
-
             Icon(
                 Icons.Default.Logout,
                 contentDescription = null
             )
-
             Spacer(modifier = Modifier.width(8.dp))
-
             Text("Cerrar Sesión")
         }
     }

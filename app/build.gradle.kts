@@ -58,6 +58,15 @@ dependencies {
     // libreria para qr
     implementation("com.google.zxing:core:3.5.3")
 
+    implementation("androidx.camera:camera-core:1.3.1")
+    implementation("androidx.camera:camera-camera2:1.3.1")
+    implementation("androidx.camera:camera-lifecycle:1.3.1")
+    implementation("androidx.camera:camera-view:1.3.1")
+// ML Kit Barcode Scanning
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+// CameraX + ML Kit Vision binding (usa la última alpha disponible)
+    implementation("androidx.camera:camera-mlkit-vision:1.4.0-alpha05")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
