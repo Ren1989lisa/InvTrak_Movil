@@ -15,6 +15,8 @@ import com.example.integradora5d.ui.screen.bienes.BienRegistradoScreen
 
 import com.example.integradora5d.ui.screen.login.LoginScreen
 import com.example.integradora5d.ui.screen.login.ResetPasswordScreen
+import com.example.integradora5d.ui.screen.perfil.EditProfileScreen
+import com.example.integradora5d.ui.screen.perfil.ProfileScreen
 
 @Composable
 fun NavGraph() {
@@ -73,5 +75,16 @@ fun NavGraph() {
         composable("reportinfo") {
             ReportInfoScreen()
         }
+
+        // --- NUEVAS RUTAS DE PERFIL ---
+
+        composable("profile") {
+            ProfileScreen(navController)
+        }
+
+        composable("edit_profile") {
+            EditProfileScreen(navController)
+        }
+
     }
 }
