@@ -1,6 +1,5 @@
 package com.example.integradora5d.ui.screen.historial
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -15,11 +14,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun TimelineItem(titulo: String, contenido: String, fecha: String) {
+fun TimelineItem(activo: String, titulo: String, contenido: String, fecha: String) {
     Row(modifier = Modifier.fillMaxWidth()) {
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
+            // Indicador de la línea de tiempo
             Box {
                 Box(
                     modifier = Modifier
@@ -37,7 +36,7 @@ fun TimelineItem(titulo: String, contenido: String, fecha: String) {
             Box(
                 modifier = Modifier
                     .width(2.dp)
-                    .height(80.dp)
+                    .height(110.dp) // Altura suficiente para el contenido interno
                     .background(Color(0xFFE0E0E0))
             )
         }
@@ -45,15 +44,37 @@ fun TimelineItem(titulo: String, contenido: String, fecha: String) {
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.padding(bottom = 24.dp)) {
-
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF4F7))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(titulo, fontWeight = FontWeight.Bold, color = Color(0xFF0A4174))
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(contenido, color = Color.DarkGray, fontSize = 14.sp)
+                    // Texto del Activo (Color #4A90A4)
+                    Text(
+                        text = activo,
+                        color = Color(0xFF4A90A4),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    // Título del Movimiento (Color #4D8EA2)
+                    Text(
+                        text = titulo,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4D8EA2),
+                        fontSize = 16.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = contenido,
+                        color = Color.DarkGray,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp
+                    )
                 }
             }
 
