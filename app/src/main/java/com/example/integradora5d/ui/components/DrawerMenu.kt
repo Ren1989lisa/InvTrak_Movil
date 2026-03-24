@@ -36,7 +36,7 @@ fun DrawerMenu(
                 imageVector = Icons.Default.AccountCircle,
                 contentDescription = null,
                 modifier = Modifier.size(80.dp),
-                tint = Color(0xFF5F97AA) // Color azulado del avatar
+                tint = Color(0xFF5F97AA)
             )
 
             Text(
@@ -49,7 +49,7 @@ fun DrawerMenu(
 
             Button(
                 onClick = {
-                    navController.navigate("profile") // <--- ESTO ACTIVA LA NAVEGACIÓN
+                    navController.navigate("profile")
                 },
                 modifier = Modifier.padding(top = 8.dp).height(36.dp),
                 shape = RoundedCornerShape(8.dp),
@@ -70,7 +70,7 @@ fun DrawerMenu(
             label = "Inicio",
             selected = currentRoute == "home"
         ) {
-            navController.navigate("home")
+            navController.navigate("bienes")
         }
 
         DrawerItem(
@@ -81,13 +81,13 @@ fun DrawerMenu(
             navController.navigate("bienes")
         }
 
-        DrawerItem(
+        /*DrawerItem(
             icon = Icons.Default.People,
             label = "Usuarios",
             selected = currentRoute == "usuarios"
         ) {
             navController.navigate("usuarios")
-        }
+        }*/
 
         DrawerItem(
             icon = Icons.Default.QrCodeScanner,

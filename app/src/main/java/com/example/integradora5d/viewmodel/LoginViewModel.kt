@@ -11,6 +11,8 @@ class LoginViewModel : ViewModel() {
     var contrasena by mutableStateOf("")
     var loginExitoso by mutableStateOf<Boolean?>(null)
 
+    var rol by mutableStateOf("")
+
     fun onCorreoChange(value: String) {
         correo = value
     }
@@ -20,6 +22,22 @@ class LoginViewModel : ViewModel() {
     }
 
     fun login() {
-        loginExitoso = (correo == "alex@gmail.com" && contrasena == "1234")
+        when {
+            correo == "admin@gmail.com" && contrasena == "1234" -> {
+                loginExitoso = true
+                rol = "ADMIN"
+            }
+            correo == "tecnico@gmail.com" && contrasena == "1234" -> {
+                loginExitoso = true
+                rol = "TECNICO"
+            }
+            correo == "user@gmail.com" && contrasena == "1234" -> {
+                loginExitoso = true
+                rol = "USER"
+            }
+            else -> {
+                loginExitoso = false
+            }
+        }
     }
 }

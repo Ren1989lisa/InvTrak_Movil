@@ -66,6 +66,7 @@ dependencies {
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
 // CameraX + ML Kit Vision binding (usa la última alpha disponible)
     implementation("androidx.camera:camera-mlkit-vision:1.4.0-alpha05")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

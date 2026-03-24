@@ -29,6 +29,7 @@ import java.util.Calendar
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.example.integradora5d.ui.components.DrawerSelector
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,11 +135,7 @@ fun BienRegistradoScreen(
         drawerState = drawerState,
 
         drawerContent = {
-
-            DrawerMenu(
-                navController = navController,
-                currentRoute = "bienes"
-            )
+            DrawerSelector(navController, "bienes")
         }
 
     ) {

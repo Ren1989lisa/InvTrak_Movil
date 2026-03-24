@@ -17,7 +17,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.integradora5d.ui.components.DrawerMenu
+
+
+import com.example.integradora5d.ui.components.DrawerSelector
+
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,6 +30,9 @@ fun ProfileScreen(navController: NavController) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
+    // 🔥 OBTENER ROL
+    val rol = prefs.getString("rol", "") ?: ""
+
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -34,14 +40,17 @@ fun ProfileScreen(navController: NavController) {
     val correo = prefs.getString("correo", "fernandarod@email.com") ?: ""
     val fecha = prefs.getString("fecha", "05/11/1980") ?: ""
     val curp = prefs.getString("curp", "ROMF801105MDFDRN08") ?: ""
-    val rol = prefs.getString("rol", "Empleado") ?: ""
     val numeroEmpleado = "08001"
     val area = prefs.getString("area", "Soporte Técnico") ?: ""
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = { DrawerMenu(navController, "profile") }
+
+        drawerContent = {
+            DrawerSelector(navController, "profile")
+        }
     ) {
+
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
@@ -104,8 +113,7 @@ fun ProfileScreen(navController: NavController) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFEBF5F9)),
-                    elevation = CardDefaults.cardElevation(0.dp)
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFEBF5F9))
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp),
@@ -116,7 +124,7 @@ fun ProfileScreen(navController: NavController) {
                         ProfileInfoItem("Fecha de Nacimiento", fecha)
                         ProfileInfoItem("CURP", curp)
                         ProfileInfoItem("Rol", rol)
-                        ProfileInfoItem("Número de empleaodo", numeroEmpleado)
+                        ProfileInfoItem("Número de empleado", numeroEmpleado)
                         ProfileInfoItem("Área/Departamento", area)
                     }
                 }
@@ -147,13 +155,11 @@ fun ProfileInfoItem(label: String, value: String) {
         Text(
             text = label,
             color = Color(0xFF1A4670),
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodyMedium
+            fontWeight = FontWeight.Bold
         )
         Text(
             text = value,
-            color = Color(0xFF1A4670),
-            style = MaterialTheme.typography.bodyMedium
+            color = Color(0xFF1A4670)
         )
     }
 }

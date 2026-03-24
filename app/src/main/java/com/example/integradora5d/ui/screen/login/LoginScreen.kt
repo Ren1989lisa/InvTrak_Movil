@@ -1,5 +1,6 @@
 package com.example.integradora5d.ui.screen.login
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -27,10 +29,20 @@ fun LoginScreen(
     onForgotPassword: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
+
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
     val loginExitoso = viewModel.loginExitoso
 
+    // 🔥 GUARDAR ROL Y NAVEGAR
     LaunchedEffect(loginExitoso) {
         if (loginExitoso == true) {
+
+            prefs.edit()
+                .putString("rol", viewModel.rol) // ADMIN / TECNICO / USER
+                .apply()
+
             onLoginSuccess()
         }
     }
@@ -47,12 +59,14 @@ fun LoginScreen(
                 )
             )
     ) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             Spacer(modifier = Modifier.height(40.dp))
 
             Image(
@@ -86,9 +100,11 @@ fun LoginScreen(
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
+
                 Column(
                     modifier = Modifier.padding(20.dp)
                 ) {
+
                     Text(
                         text = "Bienvenido",
                         fontSize = 20.sp,
@@ -143,11 +159,9 @@ fun LoginScreen(
                         Text("Login")
                     }
 
-                    loginExitoso?.let {
-                        if (!it) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Credenciales incorrectas", color = Color.Red)
-                        }
+                    if (loginExitoso == false) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Credenciales incorrectas", color = Color.Red)
                     }
                 }
             }
