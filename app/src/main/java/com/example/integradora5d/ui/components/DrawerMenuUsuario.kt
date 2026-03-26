@@ -62,7 +62,7 @@ fun DrawerMenuUsuario(
                         modifier = Modifier.padding(top = 12.dp)
                     )
 
-                    Button(
+                    /*Button(
                         onClick = {
                             navController.navigate("profile")
                         },
@@ -78,7 +78,7 @@ fun DrawerMenuUsuario(
                             color = Color(0xFF0A4174),
                             fontWeight = FontWeight.Bold
                         )
-                    }
+                    }*/
                 }
             }
 
@@ -140,7 +140,7 @@ fun DrawerMenuUsuario(
             )
 
             // --- PERFIL ---
-            NavigationDrawerItem(
+            /*NavigationDrawerItem(
                 icon = { Icon(Icons.Default.Person, contentDescription = null) },
                 label = { Text("Perfil", fontWeight = FontWeight.Medium) },
                 selected = currentRoute == "profile",
@@ -153,7 +153,7 @@ fun DrawerMenuUsuario(
                     unselectedIconColor = Color(0xFF0A4174),
                     unselectedTextColor = Color(0xFF0A4174)
                 )
-            )
+            )*/
 
             Spacer(modifier = Modifier.weight(1f))
 
