@@ -35,8 +35,15 @@ import kotlin.math.ceil
 @Composable
 fun BienRegistradoScreen(
     navController: NavController,
+    userId: Int,      // ID del usuario logueado
+    userRole: String, // Rol del usuario (ADMIN, TECNICO, USUARIO)
     viewModel: BienRegistradoViewModel = viewModel()
 ) {
+    // DISPARAR CARGA DE DATOS DESDE RETROFIT
+    LaunchedEffect(Unit) {
+        viewModel.cargarDatosSegunRol(userId, userRole)
+    }
+
     var busqueda by remember { mutableStateOf("") }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -64,7 +71,7 @@ fun BienRegistradoScreen(
         return digits.takeIf { it.isNotEmpty() }?.toInt()
     }
 
-    // Lista filtrada
+    // Lista filtrada (se actualiza automáticamente cuando la API responde)
     val bienesFiltrados by remember(fechaSeleccionada, precioInput, ubicacionSeleccionada, busqueda, viewModel.bienesRegistrados) {
         derivedStateOf {
             viewModel.bienesRegistrados.filter { bien ->
@@ -91,7 +98,6 @@ fun BienRegistradoScreen(
     val inicio = (paginaActual - 1) * cardsPorPagina
     val bienesPagina = bienesFiltrados.drop(inicio).take(cardsPorPagina)
 
-    // Gradiente para los botones de paginado
     val azulGradiente = Brush.horizontalGradient(
         colors = listOf(Color(0xFF1969B6), Color(0xFF73BAFF))
     )
@@ -176,12 +182,22 @@ fun BienRegistradoScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(bienesPagina) { bien ->
-                        BienRegistradoCard(bien = bien, onClick = {
-                            navController.currentBackStackEntry?.savedStateHandle?.set("bienSeleccionado", bien)
-                            navController.navigate("bien_detalle")
-                        })
+                // MUESTRA LA LISTA O UN INDICADOR DE CARGA
+                Box(modifier = Modifier.weight(1f)) {
+                    if (viewModel.estaCargando) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = Color(0xFF0A4174)
+                        )
+                    } else {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(bienesPagina) { bien ->
+                                BienRegistradoCard(bien = bien, onClick = {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set("bienSeleccionado", bien)
+                                    navController.navigate("bien_detalle")
+                                })
+                            }
+                        }
                     }
                 }
 
@@ -193,7 +209,6 @@ fun BienRegistradoScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Botón Previous
                     Box(
                         modifier = Modifier
                             .height(40.dp)
@@ -210,7 +225,6 @@ fun BienRegistradoScreen(
 
                     Text("Página $paginaActual de $totalPaginas", color = Color(0xFF0A4174), fontWeight = FontWeight.Bold)
 
-                    // Botón Next
                     Box(
                         modifier = Modifier
                             .height(40.dp)

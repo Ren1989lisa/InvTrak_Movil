@@ -20,26 +20,24 @@ import com.example.integradora5d.ui.screen.reporte.CrearReporte
 
 @Composable
 fun NavGraph() {
-
     val navController = rememberNavController()
-
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
-    // estado reactivo del rol
-    var rol by remember { mutableStateOf("") }
+    // Estados reactivos para los datos del usuario
+    var rol by remember { mutableStateOf(prefs.getString("rol", "") ?: "") }
+    var userId by remember { mutableStateOf(prefs.getInt("userId", 0)) }
 
     NavHost(
         navController = navController,
         startDestination = "login"
     ) {
-
         composable("login") {
             LoginScreen(
                 onLoginSuccess = {
-
-                    //  actualizar rol DESPUÉS del login
+                    // ACTUALIZAR datos DESPUÉS del login para que los estados reaccionen
                     rol = prefs.getString("rol", "") ?: ""
+                    userId = prefs.getInt("userId", 0)
 
                     navController.navigate("bienes") {
                         popUpTo("login") { inclusive = true }
@@ -53,16 +51,18 @@ fun NavGraph() {
 
         composable("resetPassword") {
             ResetPasswordScreen(
-                onBackToLogin = {
-                    navController.popBackStack()
-                },
+                onBackToLogin = { navController.popBackStack() },
                 onSendReset = {}
             )
         }
 
-        //  TODOS
+        // --- PANTALLA DE BIENES (Corregida con los 3 parámetros) ---
         composable("bienes") {
-            BienRegistradoScreen(navController)
+            BienRegistradoScreen(
+                navController = navController,
+                userId = userId,
+                userRole = rol
+            )
         }
 
         composable("bien_detalle") {
@@ -71,8 +71,8 @@ fun NavGraph() {
                 ?.savedStateHandle
                 ?.get<BienRegistrado>("bienSeleccionado")
 
-            bien?.let {
-                BienDetalleScreen(navController, it)
+            if (bien != null) {
+                BienDetalleScreen(navController, bien)
             }
         }
 
@@ -80,12 +80,12 @@ fun NavGraph() {
             ScanQrScreen(navController)
         }
 
-        // 🔥 SOLO ADMIN
+        // SOLO ADMIN
         composable("reportinfo") {
             if (rol == "ADMIN") {
                 ReportInfoScreen()
             } else {
-                navController.popBackStack()
+                LaunchedEffect(Unit) { navController.popBackStack() }
             }
         }
 
@@ -93,7 +93,7 @@ fun NavGraph() {
             if (rol == "ADMIN") {
                 HistorialScreen(navController)
             } else {
-                navController.popBackStack()
+                LaunchedEffect(Unit) { navController.popBackStack() }
             }
         }
 
@@ -107,12 +107,11 @@ fun NavGraph() {
 
         // SOLO USUARIO
         composable("crear_reporte") {
-            if (rol == "USER") {
+            if (rol == "USER" || rol == "USUARIO") { // Verifica cómo lo guarda tu Login
                 CrearReporte(navController)
             } else {
-                navController.popBackStack()
+                LaunchedEffect(Unit) { navController.popBackStack() }
             }
         }
-
     }
 }
