@@ -68,6 +68,9 @@ dependencies {
     implementation("androidx.camera:camera-mlkit-vision:1.4.0-alpha05")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation(libs.androidx.compose.foundation)
+    // retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.6.4")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
