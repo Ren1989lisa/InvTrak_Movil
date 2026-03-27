@@ -1,6 +1,13 @@
 package com.example.integradora5d.ui.screen.reporte
 
+import android.Manifest
+import android.content.ContentValues
+import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,19 +25,24 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import com.example.integradora5d.ui.components.DrawerMenuUsuario
-import kotlinx.coroutines.launch
+import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
+import androidx.compose.ui.window.Dialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("DEPRECATION")
@@ -48,16 +60,59 @@ fun CrearReporte(navController: NavController) {
 
     val opciones = listOf("Activo", "Inactivo")
     val imagenes = remember { mutableStateListOf<Uri>() }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    val imageUri = remember {
-        val file = File(context.cacheDir, "temp_image.jpg")
-        FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-    }
+    // Reemplazamos la Uri fija por un estado que contendrá la Uri creada justo antes de lanzar la cámara
+    val currentImageUri = remember { mutableStateOf<Uri?>(null) }
 
+    // Launcher para tomar la foto
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success) imagenes.add(imageUri)
+        if (success) {
+            // Si la captura fue exitosa, agregamos la uri actual a la lista de imágenes
+            currentImageUri.value?.let { uri ->
+                imagenes.add(uri)
+            }
+        } else {
+            // Si falló, limpiamos la uri (opcional: también podríamos borrar el archivo vacío)
+            currentImageUri.value = null
+        }
+    }
+
+    // Launcher para solicitar permiso de cámara
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            // Si el permiso se concede, intentamos lanzar la cámara con la uri guardada
+            currentImageUri.value?.let { uri ->
+                try {
+                    cameraLauncher.launch(uri)
+                } catch (e: Exception) {
+                    Log.e("CrearReporte", "Error al lanzar cámara tras permiso concedido", e)
+                    Toast.makeText(context, "No se pudo abrir la cámara: ${'$'}{e.localizedMessage}", Toast.LENGTH_LONG).show()
+
+                    // Intentar fallback: crear Uri en MediaStore y lanzar
+                    try {
+                        val mediaUri = tryCreateMediaStoreUri(context)
+                        if (mediaUri != null) {
+                            currentImageUri.value = mediaUri
+                            cameraLauncher.launch(mediaUri)
+                        } else {
+                            Toast.makeText(context, "No se pudo crear Uri de respaldo.", Toast.LENGTH_LONG).show()
+                        }
+                    } catch (e2: Exception) {
+                        Log.e("CrearReporte", "Fallback MediaStore falló", e2)
+                        Toast.makeText(context, "Error al abrir la cámara (fallback): ${'$'}{e2.localizedMessage}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } ?: run {
+                Toast.makeText(context, "No se pudo obtener la URI de la imagen.", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(context, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show()
+        }
     }
 
     // Paleta de colores ajustada para parecerse al mock
@@ -234,7 +289,68 @@ fun CrearReporte(navController: NavController) {
                                             .height(120.dp)
                                             .border(3.dp, azulBorde, RoundedCornerShape(12.dp))
                                             .background(Color(0xFFEAF6FB), RoundedCornerShape(12.dp))
-                                            .clickable { cameraLauncher.launch(imageUri) },
+                                            .clickable {
+                                                try {
+                                                    // Preferir externalCacheDir (mejor compatibilidad con apps de cámara)
+                                                    val dir = context.externalCacheDir ?: context.cacheDir
+                                                    if (dir == null) {
+                                                        Toast.makeText(context, "No se puede acceder al almacenamiento temporal.", Toast.LENGTH_LONG).show()
+                                                        return@clickable
+                                                    }
+                                                    if (!dir.exists()) dir.mkdirs()
+                                                    val file = File(dir, "IMG_${'$'}{System.currentTimeMillis()}.jpg")
+                                                    // crear el archivo físico para que la cámara pueda escribir en él
+                                                    if (!file.exists()) {
+                                                        file.createNewFile()
+                                                        Log.d("CrearReporte","archivo creado path=${file.absolutePath}")
+                                                    }
+                                                    // intentar hacer el archivo escribible/legible
+                                                    try {
+                                                        file.setWritable(true, true)
+                                                        file.setReadable(true, true)
+                                                    } catch (e: Exception) {
+                                                        Log.w("CrearReporte", "No se pudo cambiar permisos del archivo", e)
+                                                    }
+
+                                                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+                                                    currentImageUri.value = uri
+
+                                                    // Chequear permiso de cámara antes de lanzar
+                                                    val hasCameraPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                                                    if (hasCameraPermission) {
+                                                        Log.d("CrearReporte", "Lanzando cámara con uri=${'$'}uri")
+                                                        try {
+                                                            cameraLauncher.launch(uri)
+                                                        } catch (e: Exception) {
+                                                            Log.e("CrearReporte", "Error al lanzar cámara", e)
+                                                            Toast.makeText(context, "No se pudo abrir la cámara: ${'$'}{e.localizedMessage}", Toast.LENGTH_LONG).show()
+
+                                                            // Fallback: intentar crear un Uri en MediaStore y lanzar la cámara con él
+                                                            try {
+                                                                val mediaUri = tryCreateMediaStoreUri(context)
+                                                                if (mediaUri != null) {
+                                                                    currentImageUri.value = mediaUri
+                                                                    cameraLauncher.launch(mediaUri)
+                                                                  } else {
+                                                                    Toast.makeText(context, "No se pudo crear Uri de respaldo.", Toast.LENGTH_LONG).show()
+                                                                  }
+                                                            } catch (e2: Exception) {
+                                                                Log.e("CrearReporte", "Fallback MediaStore falló", e2)
+                                                                Toast.makeText(context, "Error al abrir la cámara (fallback): ${'$'}{e2.localizedMessage}", Toast.LENGTH_LONG).show()
+                                                            }
+                                                        }
+                                                    } else {
+                                                        // pedimos el permiso; cuando se conceda el permissionLauncher lanzará la cámara usando currentImageUri
+                                                        Log.d("CrearReporte", "Solicitando permiso de cámara")
+                                                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                                                    }
+
+                                                } catch (e: Exception) {
+                                                    Log.e("CrearReporte", "Error al abrir cámara", e)
+                                                    Toast.makeText(context, "Error al abrir la cámara: ${'$'}{e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                                    currentImageUri.value = null
+                                                }
+                                            },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -247,22 +363,83 @@ fun CrearReporte(navController: NavController) {
                                     Spacer(modifier = Modifier.height(12.dp))
 
                                     // Mini thumbnails (3 cuadrados)
-                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                        repeat(3) { idx ->
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(56.dp)
-                                                    .border(2.dp, azulBorde, RoundedCornerShape(12.dp))
-                                                    .background(Color(0xFFD7EAF1), RoundedCornerShape(12.dp))
-                                                    .clickable { /* mostrar imagen grande o eliminar */ }
-                                                    .shadow(6.dp, RoundedCornerShape(12.dp)),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                // Si hay imagenes mostrarlas (placeholder si no)
-                                                if (imagenes.size > idx) {
-                                                    Text("Img", color = azulClaroIcono)
-                                                } else {
-                                                    Icon(Icons.Default.Image, contentDescription = null, tint = azulClaroIcono)
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        // Mostrar hasta 3 miniaturas reales
+                                        val thumbSize = 56.dp
+                                        for (i in 0 until 3) {
+                                            if (i < imagenes.size) {
+                                                val uri = imagenes[i]
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(thumbSize)
+                                                        .border(2.dp, azulBorde, RoundedCornerShape(12.dp))
+                                                        .shadow(6.dp, RoundedCornerShape(12.dp))
+                                                        .clickable { selectedImageUri = uri },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    AsyncImage(
+                                                        model = uri,
+                                                        contentDescription = "Imagen ${i + 1}",
+                                                        contentScale = ContentScale.Crop,
+                                                        modifier = Modifier
+                                                            .fillMaxSize()
+                                                            .clip(RoundedCornerShape(10.dp))
+                                                    )
+                                                }
+                                            } else {
+                                                // placeholder para añadir más imágenes
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(thumbSize)
+                                                        .border(2.dp, azulBorde, RoundedCornerShape(12.dp))
+                                                        .background(Color(0xFFD7EAF1), RoundedCornerShape(12.dp))
+                                                        .clickable {
+                                                            // disparar la misma acción que la caja grande (abrir cámara)
+                                                            try {
+                                                                val dir = context.externalCacheDir ?: context.cacheDir
+                                                                if (dir == null) return@clickable
+                                                                if (!dir.exists()) dir.mkdirs()
+                                                                val file = File(dir, "IMG_${System.currentTimeMillis()}.jpg")
+                                                                if (!file.exists()) file.createNewFile()
+                                                                val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+                                                                currentImageUri.value = uri
+                                                                val hasCameraPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                                                                if (hasCameraPermission) {
+                                                                    cameraLauncher.launch(uri)
+                                                                } else {
+                                                                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                                                                }
+                                                            } catch (e: Exception) {
+                                                                Log.e("CrearReporte", "Error al abrir cámara (placeholder)", e)
+                                                                Toast.makeText(context, "No se pudo abrir la cámara: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                                            }
+                                                        }
+                                                        .shadow(6.dp, RoundedCornerShape(12.dp)),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(Icons.Default.Image, contentDescription = "Añadir imagen", tint = azulClaroIcono)
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Dialog para vista previa y eliminación
+                                    selectedImageUri?.let { previewUri ->
+                                        Dialog(onDismissRequest = { selectedImageUri = null }) {
+                                            Surface(shape = RoundedCornerShape(12.dp), color = Color.White, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                                                Column(modifier = Modifier.fillMaxWidth().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                                    AsyncImage(model = previewUri, contentDescription = "Preview", modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(360.dp), contentScale = ContentScale.Fit)
+                                                    Spacer(modifier = Modifier.height(12.dp))
+                                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                                        OutlinedButton(onClick = { selectedImageUri = null }) { Text("Cerrar") }
+                                                        Button(onClick = {
+                                                            // eliminar la imagen seleccionada
+                                                            imagenes.remove(previewUri)
+                                                            selectedImageUri = null
+                                                        }) { Text("Eliminar") }
+                                                    }
                                                 }
                                             }
                                         }
@@ -348,5 +525,22 @@ fun CrearReporte(navController: NavController) {
                 // Antes el Box terminaba aquí; mantenemos la jerarquía
             }
         }
+    }
+}
+
+// Helper: crea una Uri en MediaStore (útil como fallback en Android 10+ y en general)
+fun tryCreateMediaStoreUri(context: Context): Uri? {
+    return try {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}.jpg")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/InvTrak")
+            }
+        }
+        context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+    } catch (e: Exception) {
+        Log.e("CrearReporte", "Error creando Uri MediaStore", e)
+        null
     }
 }

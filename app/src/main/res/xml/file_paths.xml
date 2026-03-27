@@ -6,6 +6,11 @@
         name="cache"
         path="." />
 
+    <!-- Permite usar el external cache (necesario si usamos externalCacheDir) -->
+    <external-cache-path
+        name="external_cache"
+        path="." />
+
     <!-- Opcional: archivos internos -->
     <files-path
         name="files"
