@@ -51,7 +51,7 @@ fun CrearReporte(navController: NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-
+    "se agregaron los cambios"
     var etiqueta by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
