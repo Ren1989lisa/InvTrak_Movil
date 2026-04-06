@@ -43,18 +43,28 @@ class LoginViewModel : ViewModel() {
                 val respuesta = api.login(credenciales)
 
                 token = respuesta.accessToken
-                rol = respuesta.roles.firstOrNull() ?: "USER"
+
+                val rolesList = respuesta.roles
+                val rolesString = rolesList.joinToString(",")
+
+                rol = when {
+                    rolesList.contains("ADMIN") -> "ADMIN"
+                    rolesList.contains("TECNICO") -> "TECNICO"
+                    else -> "USUARIO"
+                }
 
                 val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
                 prefs.edit()
                     .putString("token", token)
-                    .putString("rol", rol)
+                    .putString("rol", rol) // principal
+                    .putString("roles", rolesString) // TODOS
                     .apply()
 
                 loginExitoso = true
 
                 Log.d("LOGIN", "Token: $token")
-                Log.d("LOGIN", "Rol: $rol")
+                Log.d("LOGIN", "Rol principal: $rol")
+                Log.d("LOGIN", "Todos los roles: $rolesString")
 
             } catch (e: Exception) {
                 Log.e("LOGIN", "Error: ${e.message}")
