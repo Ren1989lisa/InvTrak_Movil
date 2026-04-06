@@ -1,9 +1,8 @@
 package com.example.integradora5d.viewmodel
 
+import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.integradora5d.data.network.RetrofitClient
@@ -11,22 +10,19 @@ import kotlinx.coroutines.launch
 
 class LoginViewModel : ViewModel() {
 
-    // Campos de texto reactivos
     var correo by mutableStateOf("")
     var contrasena by mutableStateOf("")
 
-    // Estados de flujo
     var loginExitoso by mutableStateOf<Boolean?>(null)
     var estaCargando by mutableStateOf(false)
 
-    // Datos recuperados de la BD
     var rol by mutableStateOf("")
-    var userId by mutableStateOf(0)
+    var token by mutableStateOf("")
 
     fun onCorreoChange(value: String) { correo = value }
     fun onContrasenaChange(value: String) { contrasena = value }
 
-    fun login() {
+    fun login(context: Context) {
         if (correo.isBlank() || contrasena.isBlank()) {
             loginExitoso = false
             return
@@ -37,24 +33,31 @@ class LoginViewModel : ViewModel() {
             loginExitoso = null
 
             try {
-                // Preparamos el Map para el @Body de Retrofit
+                val api = RetrofitClient.create(context)
+
                 val credenciales = mapOf(
                     "correo" to correo,
-                    "contrasena" to contrasena
+                    "password" to contrasena
                 )
 
-                // Llamada a tu ApiService.login
-                val respuesta = RetrofitClient.apiService.login(credenciales)
+                val respuesta = api.login(credenciales)
 
-                // Guardamos la info que viene de Spring
-                userId = respuesta.id
-                rol = respuesta.rol
+                token = respuesta.accessToken
+                rol = respuesta.roles.firstOrNull() ?: "USER"
+
+                val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+                prefs.edit()
+                    .putString("token", token)
+                    .putString("rol", rol)
+                    .apply()
+
                 loginExitoso = true
 
-                Log.d("LoginAPI", "Usuario verificado: ${respuesta.correo} [ID: $userId, Rol: $rol]")
+                Log.d("LOGIN", "Token: $token")
+                Log.d("LOGIN", "Rol: $rol")
 
             } catch (e: Exception) {
-                Log.e("LoginAPI", "Error de autenticación: ${e.message}")
+                Log.e("LOGIN", "Error: ${e.message}")
                 loginExitoso = false
             } finally {
                 estaCargando = false

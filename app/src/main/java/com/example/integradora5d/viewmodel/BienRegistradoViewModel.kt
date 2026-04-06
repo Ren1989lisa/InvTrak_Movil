@@ -1,9 +1,10 @@
 package com.example.integradora5d.viewmodel
 
+import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,45 +14,49 @@ import kotlinx.coroutines.launch
 
 class BienRegistradoViewModel : ViewModel() {
 
-    // Lista observable para la LazyColumn
     var bienesRegistrados = mutableStateListOf<BienRegistrado>()
         private set
 
-    // Estado para el ProgressIndicator
     var estaCargando by mutableStateOf(false)
         private set
 
-    /**
-     * Función unificada: Decide qué endpoint llamar basándose en
-     * los datos que "jalamos" del Login.
-     */
-    fun cargarDatosSegunRol(idUsuario: Int, rolUsuario: String) {
+    fun cargarDatosSegunRol(context: Context, userId: Int, userRole: String) {
+        when (userRole.uppercase()) {
+            "ADMIN" -> cargarUsuarios(context)
+            "TECNICO" -> cargarUsuarios(context)
+            "USUARIO" -> cargarUsuarios(context)
+            else -> cargarUsuarios(context)
+        }
+    }
+
+    fun cargarUsuarios(context: Context) {
         viewModelScope.launch {
             estaCargando = true
             try {
-                // Seleccionamos el método de tu ApiService según el Rol
-                val respuesta = when (rolUsuario.uppercase()) {
-                    "ADMIN" -> {
-                        Log.d("API_Bienes", "Pidiendo todos los bienes (ADMIN)")
-                        RetrofitClient.apiService.getTodosLosBienes()
-                    }
-                    "TECNICO" -> {
-                        Log.d("API_Bienes", "Pidiendo bienes de mantenimiento (TECNICO)")
-                        RetrofitClient.apiService.getBienesParaTecnico()
-                    }
-                    else -> {
-                        Log.d("API_Bienes", "Pidiendo bienes del usuario: $idUsuario")
-                        RetrofitClient.apiService.getBienesPorUsuario(idUsuario)
-                    }
+                val api = RetrofitClient.create(context)
+
+                val usuarios = api.getTecnicos()
+
+                bienesRegistrados.clear()
+
+                usuarios.forEach { user ->
+                    bienesRegistrados.add(
+                        BienRegistrado(
+                            etiqueta = user.nombre,
+                            tipo = "Usuario",
+                            descripcion = user.correo,
+                            fechaAlta = "N/A",
+                            ubicacion = user.area ?: "Sin área",
+                            costo = "N/A",
+                            estado = if (user.estatus) "Activo" else "Inactivo"
+                        )
+                    )
                 }
 
-                // Actualizamos la lista en la UI
-                bienesRegistrados.clear()
-                bienesRegistrados.addAll(respuesta)
+                Log.d("API", "Usuarios cargados: ${usuarios.size}")
 
             } catch (e: Exception) {
-                Log.e("API_Bienes", "Error al obtener datos: ${e.message}")
-                // Aquí podrías agregar un mensaje de error para el usuario
+                Log.e("API", "Error: ${e.message}")
             } finally {
                 estaCargando = false
             }
