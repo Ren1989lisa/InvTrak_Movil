@@ -10,13 +10,17 @@ class AuthInterceptor(context: Context) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val token = prefs.getString("token", null)
+        val originalRequest = chain.request()
+        val requestBuilder = originalRequest.newBuilder()
 
-        val request = chain.request().newBuilder()
+        // No enviar token en login (ni endpoints públicos)
+        val isAuthRequest = originalRequest.url.encodedPath.contains("auth/login")
 
-        token?.let {
-            request.addHeader("Authorization", "Bearer $it")
+        // Solo agregar token si es válido y no es login
+        if (!token.isNullOrBlank() && !isAuthRequest) {
+            requestBuilder.addHeader("Authorization", "Bearer $token")
         }
 
-        return chain.proceed(request.build())
+        return chain.proceed(requestBuilder.build())
     }
 }

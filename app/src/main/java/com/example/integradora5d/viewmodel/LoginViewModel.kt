@@ -48,8 +48,8 @@ class LoginViewModel : ViewModel() {
                 val rolesString = rolesList.joinToString(",")
 
                 rol = when {
-                    rolesList.contains("ADMIN") -> "ADMIN"
-                    rolesList.contains("TECNICO") -> "TECNICO"
+                    rolesList.contains("ROLE_ADMINISTRADOR") -> "ADMIN"
+                    rolesList.contains("ROLE_TECNICO") -> "TECNICO"
                     else -> "USUARIO"
                 }
 
