@@ -16,41 +16,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-
-
 import com.example.integradora5d.ui.components.DrawerSelector
-
+import com.example.integradora5d.viewmodel.PerfilViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = viewModel()) {
 
     val context = LocalContext.current
-    val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-
-    // 🔥 OBTENER ROL
-    val rol = prefs.getString("rol", "") ?: ""
-
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    val nombre = prefs.getString("nombre", "Fernanda Rodríguez Martínez") ?: ""
-    val correo = prefs.getString("correo", "fernandarod@email.com") ?: ""
-    val fecha = prefs.getString("fecha", "05/11/1980") ?: ""
-    val curp = prefs.getString("curp", "ROMF801105MDFDRN08") ?: ""
-    val numeroEmpleado = "08001"
-    val area = prefs.getString("area", "Soporte Técnico") ?: ""
+    // Dispara la carga de datos del backend
+    LaunchedEffect(Unit) {
+        viewModel.cargarDatosUsuario(context)
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-
         drawerContent = {
             DrawerSelector(navController, "profile")
         }
     ) {
-
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
@@ -103,7 +93,7 @@ fun ProfileScreen(navController: NavController) {
                 )
 
                 Text(
-                    text = nombre,
+                    text = viewModel.nombre,
                     color = Color(0xFF5F97AA),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium,
@@ -119,13 +109,13 @@ fun ProfileScreen(navController: NavController) {
                         modifier = Modifier.padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        ProfileInfoItem("Nombre completo", nombre)
-                        ProfileInfoItem("Correo Electrónico", correo)
-                        ProfileInfoItem("Fecha de Nacimiento", fecha)
-                        ProfileInfoItem("CURP", curp)
-                        ProfileInfoItem("Rol", rol)
-                        ProfileInfoItem("Número de empleado", numeroEmpleado)
-                        ProfileInfoItem("Área/Departamento", area)
+                        ProfileInfoItem("Nombre completo", viewModel.nombre)
+                        ProfileInfoItem("Correo Electrónico", viewModel.correo)
+                        ProfileInfoItem("Fecha de Nacimiento", viewModel.fechaNacimiento)
+                        ProfileInfoItem("CURP", viewModel.curp)
+                        ProfileInfoItem("Rol", viewModel.rol)
+                        ProfileInfoItem("Número de empleado", viewModel.numeroEmpleado)
+                        ProfileInfoItem("Área/Departamento", viewModel.area)
                     }
                 }
 

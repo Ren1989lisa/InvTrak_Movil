@@ -27,14 +27,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.integradora5d.ui.components.DrawerMenuUsuario
+import com.example.integradora5d.viewmodel.ReporteViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CrearReporte(navController: NavController) {
+fun CrearReporte(
+    navController: NavController,
+    usuarioId: Int, // ID del usuario para el reporte
+    viewModel: ReporteViewModel = viewModel()
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -60,15 +66,26 @@ fun CrearReporte(navController: NavController) {
 
     // Paleta de colores extraída de la imagen
     val azulOscuroTexto = Color(0xFF133256)
+<<<<<<< Updated upstream
     val azulBorde = Color(0xFFB0D1E8)
+=======
+    val azulBorde = Color(0xFF6EA7B6)
+>>>>>>> Stashed changes
     val azulClaroIcono = Color(0xFF7DA2C2)
     val verdeExito = Color(0xFF8CD8A7)
     val fondoBotonImagen = Color(0xFFC9DEEC)
 
+    // Observar errores del ViewModel
+    LaunchedEffect(viewModel.mensajeError) {
+        viewModel.mensajeError?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.limpiarError()
+        }
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            // Se integra el componente que solicitaste
             DrawerMenuUsuario(navController = navController, currentRoute = "crear_reporte")
         }
     ) {
@@ -79,7 +96,11 @@ fun CrearReporte(navController: NavController) {
         ) {
             Column {
                 // HEADER (TopBar)
+<<<<<<< Updated upstream
                 Row(
+=======
+                Box(
+>>>>>>> Stashed changes
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
@@ -104,6 +125,7 @@ fun CrearReporte(navController: NavController) {
                     )
                 }
 
+<<<<<<< Updated upstream
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -111,6 +133,11 @@ fun CrearReporte(navController: NavController) {
                 ) {
                     // TARJETA BLANCA PRINCIPAL
                     Card(
+=======
+                val scrollState = rememberScrollState()
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Column(
+>>>>>>> Stashed changes
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 30.dp, bottom = 20.dp)
@@ -125,6 +152,7 @@ fun CrearReporte(navController: NavController) {
                         ) {
                             Spacer(modifier = Modifier.height(20.dp))
 
+<<<<<<< Updated upstream
                             // FILA: ETIQUETA Y ESTATUS
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -132,6 +160,92 @@ fun CrearReporte(navController: NavController) {
                             ) {
                                 Column(modifier = Modifier.weight(1.1f)) {
                                     Text("Etiqueta del bien", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = azulOscuroTexto)
+=======
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 18.dp)
+                                    .shadow(14.dp, RoundedCornerShape(28.dp)),
+                                shape = RoundedCornerShape(28.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(20.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        IconButton(onClick = { navController.popBackStack() }) {
+                                            Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = Color(0xFF133256))
+                                        }
+                                        Text("Regresar", color = Color(0xFF133256), fontWeight = FontWeight.Medium)
+                                    }
+                                    Spacer(modifier = Modifier.height(10.dp))
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Column(modifier = Modifier.weight(1.1f)) {
+                                            Text("Etiqueta del bien", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = azulOscuroTexto)
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            OutlinedTextField(
+                                                value = etiqueta,
+                                                onValueChange = { etiqueta = it },
+                                                placeholder = { Text("Ingrese la etiqueta del bien", fontSize = 13.sp, color = azulClaroIcono) },
+                                                leadingIcon = { Icon(Icons.Outlined.QrCodeScanner, contentDescription = null, tint = azulClaroIcono) },
+                                                shape = RoundedCornerShape(12.dp),
+                                                colors = OutlinedTextFieldDefaults.colors(
+                                                    unfocusedBorderColor = azulBorde,
+                                                    focusedBorderColor = Color(0xFF0A4174),
+                                                    focusedLeadingIconColor = azulClaroIcono
+                                                ),
+                                                modifier = Modifier
+                                                    .height(56.dp)
+                                                    .fillMaxWidth(),
+                                                singleLine = true
+                                            )
+                                        }
+
+                                        Column(modifier = Modifier.weight(0.9f)) {
+                                            Text("Estatus del Producto", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = azulOscuroTexto)
+                                            Spacer(modifier = Modifier.height(8.dp))
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(56.dp)
+                                                    .border(1.5.dp, azulBorde, RoundedCornerShape(12.dp))
+                                                    .background(Color.White, RoundedCornerShape(12.dp))
+                                                    .clickable { expanded = true },
+                                                contentAlignment = Alignment.CenterStart
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Text(if (estatus.isBlank()) "Seleccione el estatus" else estatus, color = azulClaroIcono, fontSize = 14.sp)
+                                                    Icon(Icons.Default.KeyboardArrowDown, null, tint = azulClaroIcono)
+                                                }
+
+                                                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                                                    opciones.forEach {
+                                                        DropdownMenuItem(
+                                                            text = { Text(it) },
+                                                            onClick = { estatus = it; expanded = false }
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(24.dp))
+
+                                    Text("Descripción de problema", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = azulOscuroTexto)
+>>>>>>> Stashed changes
                                     Spacer(modifier = Modifier.height(8.dp))
                                     OutlinedTextField(
                                         value = etiqueta,
@@ -147,8 +261,14 @@ fun CrearReporte(navController: NavController) {
                                     )
                                 }
 
+<<<<<<< Updated upstream
                                 Column(modifier = Modifier.weight(0.9f)) {
                                     Text("Estatus del Producto", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = azulOscuroTexto)
+=======
+                                    Spacer(modifier = Modifier.height(20.dp))
+
+                                    Text("Subir Imágenes o videos", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = azulOscuroTexto)
+>>>>>>> Stashed changes
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Box(
                                         modifier = Modifier
@@ -167,6 +287,7 @@ fun CrearReporte(navController: NavController) {
                                             Text(estatus, color = azulClaroIcono, fontSize = 14.sp)
                                             Icon(Icons.Default.KeyboardArrowDown, null, tint = azulClaroIcono)
                                         }
+<<<<<<< Updated upstream
                                         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                                             opciones.forEach {
                                                 DropdownMenuItem(
@@ -228,23 +349,83 @@ fun CrearReporte(navController: NavController) {
                             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 items(imagenes) { uri ->
                                     ImageItem("img_87_1810.jpg") { imagenes.remove(uri) }
+=======
+                                    }
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        repeat(3) { idx ->
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(56.dp)
+                                                    .border(2.dp, azulBorde, RoundedCornerShape(12.dp))
+                                                    .background(Color(0xFFD7EAF1), RoundedCornerShape(12.dp))
+                                                    .shadow(6.dp, RoundedCornerShape(12.dp)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                if (imagenes.size > idx) {
+                                                    Text("Img", color = azulClaroIcono)
+                                                } else {
+                                                    Icon(Icons.Default.Image, contentDescription = null, tint = azulClaroIcono)
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                }
+                            }
+
+                            if (showSuccess) {
+                                Box(modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = (-12).dp, y = 8.dp)) {
+                                    Row(
+                                        modifier = Modifier
+                                            .background(verdeExito, RoundedCornerShape(16.dp))
+                                            .shadow(6.dp, RoundedCornerShape(16.dp))
+                                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            "Reporte Creado\nCorrectamente",
+                                            color = Color.White,
+                                            fontSize = 12.sp,
+                                            lineHeight = 14.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+>>>>>>> Stashed changes
                                 }
                             }
                         }
                     }
 
+<<<<<<< Updated upstream
                     // CHIP VERDE DE ÉXITO (Flotante al frente)
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(top = 5.dp, end = 0.dp)
                     ) {
+=======
+                    // FOOTER
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                        .shadow(6.dp, RoundedCornerShape(18.dp))
+                        .background(Color.White, RoundedCornerShape(18.dp))) {
+>>>>>>> Stashed changes
                         Row(
                             modifier = Modifier
                                 .background(verdeExito, RoundedCornerShape(14.dp))
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+<<<<<<< Updated upstream
                             Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
@@ -254,12 +435,56 @@ fun CrearReporte(navController: NavController) {
                                 lineHeight = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
+=======
+                            Button(
+                                onClick = { navController.popBackStack() },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(52.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF04C4C)),
+                                shape = RoundedCornerShape(24.dp)
+                            ) {
+                                Text("Cancelar", color = Color.White, fontWeight = FontWeight.Bold)
+                            }
+
+                            Button(
+                                onClick = {
+                                    viewModel.enviarReporte(
+                                        context = context,
+                                        etiqueta = etiqueta,
+                                        descripcion = descripcion,
+                                        estatus = estatus,
+                                        usuarioId = usuarioId
+                                    ) {
+                                        scope.launch {
+                                            showSuccess = true
+                                            delay(2200)
+                                            showSuccess = false
+                                            navController.popBackStack()
+                                        }
+                                    }
+                                },
+                                enabled = !viewModel.estaCargando,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(52.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E8B92)),
+                                shape = RoundedCornerShape(24.dp)
+                            ) {
+                                if (viewModel.estaCargando) {
+                                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                                } else {
+                                    Text("Enviar reporte", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
+                            }
+>>>>>>> Stashed changes
                         }
                     }
                 }
             }
         }
     }
+<<<<<<< Updated upstream
 }
 
 @Composable
@@ -278,4 +503,6 @@ fun ImageItem(nombre: String, onDelete: () -> Unit) {
         Spacer(modifier = Modifier.width(8.dp))
         Text(nombre, color = Color(0xFF7DA2C2), fontSize = 13.sp, fontWeight = FontWeight.Medium)
     }
+=======
+>>>>>>> Stashed changes
 }
