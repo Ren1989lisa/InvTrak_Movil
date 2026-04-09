@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,11 +39,12 @@ fun LoginScreen(
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val loginExitoso = viewModel.loginExitoso
+    val estaCargando = viewModel.estaCargando // Añadido para controlar el estado visual
 
     // Estado para controlar si la contraseña es visible o no
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // 🔥 GUARDAR ROL Y NAVEGAR
+    // GUARDAR ROL Y NAVEGAR
     LaunchedEffect(loginExitoso) {
         if (loginExitoso == true) {
             prefs.edit()
@@ -123,12 +125,13 @@ fun LoginScreen(
                             Icon(Icons.Default.Email, contentDescription = null)
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        singleLine = true
+                        singleLine = true,
+                        enabled = !estaCargando // Deshabilita si está cargando
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Campo de Contraseña CORREGIDO
+                    // Campo de Contraseña
                     OutlinedTextField(
                         value = viewModel.contrasena,
                         onValueChange = { viewModel.onContrasenaChange(it) },
@@ -137,7 +140,6 @@ fun LoginScreen(
                         leadingIcon = {
                             Icon(Icons.Default.Lock, contentDescription = null)
                         },
-                        // Lógica del "Ojo" para mostrar/ocultar
                         trailingIcon = {
                             val image = if (passwordVisible)
                                 Icons.Default.Visibility
@@ -148,17 +150,18 @@ fun LoginScreen(
                                 Icon(imageVector = image, contentDescription = if (passwordVisible) "Ocultar" else "Mostrar")
                             }
                         },
-                        // Si passwordVisible es true, muestra texto. Si es false, muestra puntos.
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        singleLine = true
+                        singleLine = true,
+                        enabled = !estaCargando // Deshabilita si está cargando
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     TextButton(
                         onClick = { onForgotPassword() },
-                        modifier = Modifier.align(Alignment.End)
+                        modifier = Modifier.align(Alignment.End),
+                        enabled = !estaCargando // Deshabilita si está cargando
                     ) {
                         Text("¿Olvidaste tu contraseña?", fontSize = 12.sp)
                     }
@@ -173,9 +176,19 @@ fun LoginScreen(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF5C8FA5)
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        enabled = !estaCargando // Evita clics repetidos
                     ) {
-                        Text("Login")
+                        // Si está cargando muestra el círculo, si no, el texto "Login"
+                        if (estaCargando) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Login")
+                        }
                     }
 
                     if (loginExitoso == false) {

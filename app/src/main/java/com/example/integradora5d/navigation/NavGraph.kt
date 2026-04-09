@@ -107,10 +107,24 @@ fun NavGraph() {
 
         // SOLO USUARIO
         composable("crear_reporte") {
+<<<<<<< Updated upstream
             if (rol == "USER") {
                 CrearReporte(navController)
             } else {
                 navController.popBackStack()
+=======
+            if (rol == "USER" || rol == "USUARIO" || rol == "ADMIN") {
+
+                CrearReporte(
+                    navController = navController,
+                    usuarioId = userId
+                )
+
+            } else {
+                LaunchedEffect(Unit) {
+                    navController.popBackStack()
+                }
+>>>>>>> Stashed changes
             }
         }
 
