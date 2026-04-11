@@ -37,8 +37,7 @@ fun NavGraph() {
 
         composable("resetPassword") {
             ResetPasswordScreen(
-                onBackToLogin = { navController.popBackStack() },
-                onSendReset = { /* Lógica de reset */ }
+                onBackToLogin = { navController.popBackStack() }
             )
         }
 

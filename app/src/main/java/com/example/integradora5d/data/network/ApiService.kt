@@ -35,4 +35,7 @@ interface ApiService {
 
     @GET("historial/{etiqueta}")
     suspend fun getHistorialByEtiqueta(@Path("etiqueta") etiqueta: String): List<BienRegistrado>
+
+    @POST("auth/forgot-password")
+    suspend fun solicitarRecuperacion(@Body body: Map<String, String>): Response<Map<String, String>>
 }
