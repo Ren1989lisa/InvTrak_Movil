@@ -7,7 +7,6 @@ import okhttp3.Response
 
 class AuthInterceptor(context: Context) : Interceptor {
 
-    // Unificamos el nombre a "user_prefs"
     private val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -15,18 +14,23 @@ class AuthInterceptor(context: Context) : Interceptor {
         val originalRequest = chain.request()
         val requestBuilder = originalRequest.newBuilder()
 
-        // Verificamos si es una ruta que NO necesita token
-        val path = originalRequest.url.encodedPath
-        val isAuthRequest = path.contains("auth/login")
+        val path = originalRequest.url.encodedPath.lowercase()
 
-        if (!token.isNullOrBlank() && !isAuthRequest) {
-            // Agregamos el token. Asegúrate de que "Bearer " tenga el espacio.
+        val isPublicRoute = path.contains("auth/login") || path.contains("auth/reset-password")
+
+        if (!token.isNullOrBlank() && !isPublicRoute) {
             requestBuilder.addHeader("Authorization", "Bearer $token")
-            Log.d("API_AUTH", "Enviando Token en: $path")
+            Log.d("API_AUTH", "TOKEN APLICADO: $path")
         } else {
-            Log.d("API_AUTH", "Petición sin token a: $path")
+            Log.d("API_AUTH", "RUTA PÚBLICA (Sin Token): $path")
         }
 
-        return chain.proceed(requestBuilder.build())
+        val response = chain.proceed(requestBuilder.build())
+
+        if (isPublicRoute) {
+            Log.d("API_AUTH", "Respuesta de Login: Código ${response.code}")
+        }
+
+        return response
     }
 }

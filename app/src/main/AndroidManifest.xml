@@ -2,9 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- ✅ PERMISO DE CÁMARA -->
+    <!-- Permisos necesarios -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Indica que la cámara no es obligatoria para instalar la app (evita errores en tablets sin cámara) -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -14,9 +17,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Integradora5D">
+        android:theme="@style/Theme.Integradora5D"
+        android:usesCleartextTraffic="true">
 
-        <!-- 🔥 FILE PROVIDER (NECESARIO PARA CÁMARA) -->
+        <!-- Configuración del FileProvider (Crucial para que la cámara guarde la foto) -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -27,7 +31,7 @@
                 android:resource="@xml/file_paths"/>
         </provider>
 
-
+        <!-- Actividad Principal -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -40,6 +44,7 @@
             </intent-filter>
 
         </activity>
+
     </application>
 
 </manifest>

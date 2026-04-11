@@ -1,5 +1,6 @@
 package com.example.integradora5d.viewmodel
 
+import android.content.Context // Importación necesaria
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -14,12 +15,15 @@ class HistorialViewModel : ViewModel() {
     var cargando by mutableStateOf(false)
     var mensajeError by mutableStateOf<String?>(null)
 
-    fun cargarHistorial(etiqueta: String) {
+    // Agregamos el context como parámetro para poder crear el cliente de Retrofit
+    fun cargarHistorial(context: Context, etiqueta: String) {
         viewModelScope.launch {
             cargando = true
             mensajeError = null
             try {
-                val respuesta = RetrofitClient.apiService.getHistorialByEtiqueta(etiqueta)
+                // Se utiliza RetrofitClient.create(context) para obtener la instancia de ApiService
+                val api = RetrofitClient.create(context)
+                val respuesta = api.getHistorialByEtiqueta(etiqueta)
                 listaHistorial = respuesta
             } catch (e: Exception) {
                 mensajeError = "Error de conexión: ${e.localizedMessage}"

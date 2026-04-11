@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -37,19 +38,13 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val loginExitoso = viewModel.loginExitoso
-    val estaCargando = viewModel.estaCargando // Añadido para controlar el estado visual
-
-    // Estado para controlar si la contraseña es visible o no
+    val estaCargando = viewModel.estaCargando
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // GUARDAR ROL Y NAVEGAR
+    // Reaccionar al éxito del login (Doble seguridad con el callback)
     LaunchedEffect(loginExitoso) {
         if (loginExitoso == true) {
-            prefs.edit()
-                .putString("rol", viewModel.rol)
-                .apply()
             onLoginSuccess()
         }
     }
@@ -59,10 +54,7 @@ fun LoginScreen(
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF0A4174),
-                        Color(0xFF49769F)
-                    )
+                    colors = listOf(Color(0xFF0A4174), Color(0xFF49769F))
                 )
             )
     ) {
@@ -94,74 +86,56 @@ fun LoginScreen(
                 fontSize = 12.sp,
                 color = Color.White.copy(alpha = 0.8f),
                 lineHeight = 16.sp,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(40.dp))
 
             Card(
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFD6E3ED)
-                ),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFD6E3ED)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        text = "Bienvenido",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text(text = "Bienvenido", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Campo de Correo
                     OutlinedTextField(
                         value = viewModel.correo,
                         onValueChange = { viewModel.onCorreoChange(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("your.email@example.com") },
-                        leadingIcon = {
-                            Icon(Icons.Default.Email, contentDescription = null)
-                        },
+                        label = { Text("Correo electrónico") },
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         singleLine = true,
-                        enabled = !estaCargando // Deshabilita si está cargando
+                        enabled = !estaCargando
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Campo de Contraseña
                     OutlinedTextField(
                         value = viewModel.contrasena,
                         onValueChange = { viewModel.onContrasenaChange(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("********") },
-                        leadingIcon = {
-                            Icon(Icons.Default.Lock, contentDescription = null)
-                        },
+                        label = { Text("Contraseña") },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                         trailingIcon = {
-                            val image = if (passwordVisible)
-                                Icons.Default.Visibility
-                            else
-                                Icons.Default.VisibilityOff
-
+                            val img = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(imageVector = image, contentDescription = if (passwordVisible) "Ocultar" else "Mostrar")
+                                Icon(imageVector = img, contentDescription = null)
                             }
                         },
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         singleLine = true,
-                        enabled = !estaCargando // Deshabilita si está cargando
+                        enabled = !estaCargando
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
 
                     TextButton(
                         onClick = { onForgotPassword() },
                         modifier = Modifier.align(Alignment.End),
-                        enabled = !estaCargando // Deshabilita si está cargando
+                        enabled = !estaCargando
                     ) {
                         Text("¿Olvidaste tu contraseña?", fontSize = 12.sp)
                     }
@@ -169,23 +143,17 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
-                        onClick = { viewModel.login() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF5C8FA5)
-                        ),
+                        onClick = {
+                            // PASAMOS LOS DOS PARÁMETROS QUE EL VIEWMODEL PIDE
+                            viewModel.login(context, onLoginSuccess)
+                        },
+                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5C8FA5)),
                         shape = RoundedCornerShape(12.dp),
-                        enabled = !estaCargando // Evita clics repetidos
+                        enabled = !estaCargando
                     ) {
-                        // Si está cargando muestra el círculo, si no, el texto "Login"
                         if (estaCargando) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = Color.White,
-                                strokeWidth = 2.dp
-                            )
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
                         } else {
                             Text("Login")
                         }
@@ -194,7 +162,7 @@ fun LoginScreen(
                     if (loginExitoso == false) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "Credenciales incorrectas",
+                            "Credenciales incorrectas o error de conexión",
                             color = Color.Red,
                             fontSize = 12.sp,
                             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -204,4 +172,10 @@ fun LoginScreen(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginPreview() {
+    LoginScreen(onLoginSuccess = {}, onForgotPassword = {})
 }

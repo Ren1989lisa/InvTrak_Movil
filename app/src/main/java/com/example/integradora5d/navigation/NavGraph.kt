@@ -4,129 +4,82 @@ import android.content.Context
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.*
-
 import com.example.integradora5d.data.model.BienRegistrado
-
-import com.example.integradora5d.ui.screen.ReportInfoScreen
-import com.example.integradora5d.ui.screen.ScanQrScreen
-import com.example.integradora5d.ui.screen.bienes.BienDetalleScreen
-import com.example.integradora5d.ui.screen.bienes.BienRegistradoScreen
+import com.example.integradora5d.ui.screen.*
+import com.example.integradora5d.ui.screen.bienes.*
 import com.example.integradora5d.ui.screen.historial.HistorialScreen
-import com.example.integradora5d.ui.screen.login.LoginScreen
-import com.example.integradora5d.ui.screen.login.ResetPasswordScreen
-import com.example.integradora5d.ui.screen.perfil.EditProfileScreen
-import com.example.integradora5d.ui.screen.perfil.ProfileScreen
+import com.example.integradora5d.ui.screen.login.*
+import com.example.integradora5d.ui.screen.perfil.*
 import com.example.integradora5d.ui.screen.reporte.CrearReporte
 
 @Composable
 fun NavGraph() {
-
     val navController = rememberNavController()
-
     val context = LocalContext.current
-    val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
-    // estado reactivo del rol
-    var rol by remember { mutableStateOf("") }
+    val prefs = remember { context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE) }
+    var rol by remember { mutableStateOf(prefs.getString("rol", "") ?: "") }
 
-    NavHost(
-        navController = navController,
-        startDestination = "login"
-    ) {
+    NavHost(navController = navController, startDestination = "login") {
 
         composable("login") {
             LoginScreen(
                 onLoginSuccess = {
-
-                    //  actualizar rol DESPUÉS del login
-                    rol = prefs.getString("rol", "") ?: ""
-
+                    val nuevoRol = prefs.getString("rol", "") ?: ""
+                    rol = nuevoRol
                     navController.navigate("bienes") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
-                onForgotPassword = {
-                    navController.navigate("resetPassword")
-                }
+                onForgotPassword = { navController.navigate("resetPassword") }
             )
         }
 
         composable("resetPassword") {
             ResetPasswordScreen(
-                onBackToLogin = {
-                    navController.popBackStack()
-                },
-                onSendReset = {}
+                onBackToLogin = { navController.popBackStack() },
+                onSendReset = { /* Lógica de reset */ }
             )
         }
 
-        //  TODOS
         composable("bienes") {
-            BienRegistradoScreen(navController)
+            // Pasamos el rol actual para que la pantalla sepa qué cargar
+            BienRegistradoScreen(navController = navController, userRole = rol)
         }
 
         composable("bien_detalle") {
-            val bien = navController
-                .previousBackStackEntry
-                ?.savedStateHandle
-                ?.get<BienRegistrado>("bienSeleccionado")
-
-            bien?.let {
-                BienDetalleScreen(navController, it)
-            }
-        }
-
-        composable("scanqr") {
-            ScanQrScreen(navController)
-        }
-
-        // 🔥 SOLO ADMIN
-        composable("reportinfo") {
-            if (rol == "ADMIN") {
-                ReportInfoScreen()
+            val bien = navController.previousBackStackEntry?.savedStateHandle?.get<BienRegistrado>("bienSeleccionado")
+            if (bien != null) {
+                BienDetalleScreen(navController, bien)
             } else {
-                navController.popBackStack()
+                LaunchedEffect(Unit) { navController.popBackStack() }
             }
+        }
+
+        composable("scanqr") { ScanQrScreen(navController) }
+
+        composable("reportinfo") {
+            if (rol.uppercase() == "ADMIN") ReportInfoScreen()
+            else LaunchedEffect(Unit) { navController.popBackStack() }
         }
 
         composable("historial") {
-            if (rol == "ADMIN") {
-                HistorialScreen(navController)
-            } else {
-                navController.popBackStack()
-            }
+            if (rol.uppercase() == "ADMIN") HistorialScreen(navController)
+            else LaunchedEffect(Unit) { navController.popBackStack() }
         }
 
-        composable("profile") {
-            ProfileScreen(navController)
-        }
+        composable("profile") { ProfileScreen(navController) }
 
-        composable("edit_profile") {
-            EditProfileScreen(navController)
-        }
+        composable("edit_profile") { EditProfileScreen(navController) }
 
-        // SOLO USUARIO
         composable("crear_reporte") {
-<<<<<<< Updated upstream
-            if (rol == "USER") {
-                CrearReporte(navController)
+            val userId = prefs.getLong("userId", 0L).toInt()
+            val rolActual = rol.uppercase()
+            if (rolActual == "USER" || rolActual == "USUARIO" || rolActual == "ADMIN") {
+                CrearReporte(navController = navController, usuarioId = userId)
             } else {
-                navController.popBackStack()
-=======
-            if (rol == "USER" || rol == "USUARIO" || rol == "ADMIN") {
-
-                CrearReporte(
-                    navController = navController,
-                    usuarioId = userId
-                )
-
-            } else {
-                LaunchedEffect(Unit) {
-                    navController.popBackStack()
-                }
->>>>>>> Stashed changes
+                LaunchedEffect(Unit) { navController.popBackStack() }
             }
         }
-
     }
 }

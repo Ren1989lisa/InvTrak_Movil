@@ -1,28 +1,30 @@
 package com.example.integradora5d.viewmodel
 
+import android.content.Context
+import android.util.Log
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewModelScope
+import com.example.integradora5d.data.network.RetrofitClient
+import kotlinx.coroutines.launch
 
 class LoginViewModel : ViewModel() {
 
     var correo by mutableStateOf("")
+        private set // Es buena práctica que solo el ViewModel cambie el estado
+
     var contrasena by mutableStateOf("")
+        private set
+
     var loginExitoso by mutableStateOf<Boolean?>(null)
-
+    var estaCargando by mutableStateOf(false)
     var rol by mutableStateOf("")
+    var token by mutableStateOf("")
 
-    fun onCorreoChange(value: String) {
-        correo = value
-    }
+    fun onCorreoChange(value: String) { correo = value }
+    fun onContrasenaChange(value: String) { contrasena = value }
 
-<<<<<<< Updated upstream
-    fun onContrasenaChange(value: String) {
-        contrasena = value
-    }
-=======
-    fun login(context: Context) {
+    fun login(context: Context, onLoginSuccess: () -> Unit) {
         if (correo.isBlank() || contrasena.isBlank()) {
             loginExitoso = false
             return
@@ -34,51 +36,39 @@ class LoginViewModel : ViewModel() {
 
             try {
                 val api = RetrofitClient.create(context)
-                val credenciales = mapOf(
-                    "correo" to correo,
-                    "password" to contrasena
-                )
+                // Se envían "correo" y "password" tal cual los espera tu @Body en Spring
+                val credenciales = mapOf("correo" to correo, "password" to contrasena)
 
                 val respuesta = api.login(credenciales)
-                token = respuesta.accessToken
 
+                // IMPORTANTE: Asegúrate de que tu modelo LoginResponse tenga estos nombres
+                token = respuesta.accessToken
                 val rolesList = respuesta.roles
+
+                // Mantenemos tu lógica de mapeo de roles
                 rol = when {
                     rolesList.contains("ROLE_ADMINISTRADOR") -> "ADMIN"
                     rolesList.contains("ROLE_TECNICO") -> "TECNICO"
                     else -> "USUARIO"
                 }
 
-                // Guardado unificado en "user_prefs"
+                // Guardado en SharedPreferences
                 val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                prefs.edit()
-                    .putString("token", token)
-                    .putString("rol", rol)
-                    .apply()
->>>>>>> Stashed changes
+                prefs.edit().apply {
+                    putString("token", token)
+                    putString("rol", rol)
+                    putLong("userId", respuesta.id) // Asegúrate que 'id' exista en LoginResponse
+                    apply()
+                }
 
-    fun login() {
-        when {
-            correo == "admin@gmail.com" && contrasena == "1234" -> {
                 loginExitoso = true
-<<<<<<< Updated upstream
-                rol = "ADMIN"
-            }
-            correo == "tecnico@gmail.com" && contrasena == "1234" -> {
-                loginExitoso = true
-                rol = "TECNICO"
-            }
-            correo == "user@gmail.com" && contrasena == "1234" -> {
-                loginExitoso = true
-                rol = "USER"
-            }
-            else -> {
-=======
+                onLoginSuccess()
 
             } catch (e: Exception) {
-                Log.e("LOGIN", "Error: ${e.message}")
->>>>>>> Stashed changes
+                Log.e("LOGIN_ERROR", "Detalle: ${e.localizedMessage}")
                 loginExitoso = false
+            } finally {
+                estaCargando = false
             }
         }
     }
