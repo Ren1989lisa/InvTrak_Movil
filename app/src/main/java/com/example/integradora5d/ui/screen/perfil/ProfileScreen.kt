@@ -1,9 +1,10 @@
 package com.example.integradora5d.ui.screen.perfil
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
@@ -30,7 +31,7 @@ fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = vie
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // Dispara la carga de datos del backend
+    // Llama a la carga de datos al iniciar la pantalla
     LaunchedEffect(Unit) {
         viewModel.cargarDatosUsuario(context)
     }
@@ -61,6 +62,7 @@ fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = vie
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
+                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -72,7 +74,7 @@ fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = vie
                     horizontalArrangement = Arrangement.Start
                 ) {
                     IconButton(
-                        onClick = { navController.navigate("bienes") },
+                        onClick = { navController.popBackStack() },
                         modifier = Modifier
                             .background(Color(0xFF0A4174), RoundedCornerShape(8.dp))
                             .size(40.dp)
@@ -85,6 +87,16 @@ fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = vie
                     }
                 }
 
+                // Indicador de progreso mientras conecta con el servidor
+                if (viewModel.estaCargando) {
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        color = Color(0xFF7CB9E8)
+                    )
+                }
+
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
                     contentDescription = null,
@@ -92,9 +104,10 @@ fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = vie
                     tint = Color(0xFFB7E1F7)
                 )
 
+                // Texto dinámico: Muestra el nombre o el error si falla la conexión
                 Text(
                     text = viewModel.nombre,
-                    color = Color(0xFF5F97AA),
+                    color = if (viewModel.nombre.contains("Error")) Color.Red else Color(0xFF5F97AA),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(vertical = 12.dp)
@@ -109,6 +122,7 @@ fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = vie
                         modifier = Modifier.padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        // Sincronización con las columnas de tu BD (area, correo, curp, etc)
                         ProfileInfoItem("Nombre completo", viewModel.nombre)
                         ProfileInfoItem("Correo Electrónico", viewModel.correo)
                         ProfileInfoItem("Fecha de Nacimiento", viewModel.fechaNacimiento)
@@ -119,16 +133,16 @@ fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = vie
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
                     onClick = { navController.navigate("edit_profile") },
                     modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .height(48.dp)
-                        .padding(bottom = 12.dp),
+                        .fillMaxWidth(0.8f)
+                        .height(48.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7CB9E8)),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    enabled = !viewModel.estaCargando
                 ) {
                     Text("Editar Perfil", color = Color.White, fontWeight = FontWeight.Bold)
                 }
@@ -141,15 +155,18 @@ fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = vie
 
 @Composable
 fun ProfileInfoItem(label: String, value: String) {
-    Column {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
             color = Color(0xFF1A4670),
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.labelLarge
         )
+        // Corrección: Si el dato está en blanco o nulo, ponemos "No disponible"
         Text(
-            text = value,
-            color = Color(0xFF1A4670)
+            text = value.ifBlank { "No disponible" },
+            color = Color(0xFF1A4670),
+            style = MaterialTheme.typography.bodyLarge
         )
     }
 }

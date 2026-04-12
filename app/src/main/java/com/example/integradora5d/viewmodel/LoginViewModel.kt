@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 class LoginViewModel : ViewModel() {
 
     var correo by mutableStateOf("")
-        private set // Es buena práctica que solo el ViewModel cambie el estado
+        private set
 
     var contrasena by mutableStateOf("")
         private set
@@ -36,28 +36,23 @@ class LoginViewModel : ViewModel() {
 
             try {
                 val api = RetrofitClient.create(context)
-                // Se envían "correo" y "password" tal cual los espera tu @Body en Spring
                 val credenciales = mapOf("correo" to correo, "password" to contrasena)
 
                 val respuesta = api.login(credenciales)
 
-                // IMPORTANTE: Asegúrate de que tu modelo LoginResponse tenga estos nombres
                 token = respuesta.accessToken
                 val rolesList = respuesta.roles
 
-                // Mantenemos tu lógica de mapeo de roles
                 rol = when {
                     rolesList.contains("ROLE_ADMINISTRADOR") -> "ADMIN"
                     rolesList.contains("ROLE_TECNICO") -> "TECNICO"
                     else -> "USUARIO"
                 }
 
-                // Guardado en SharedPreferences
                 val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                 prefs.edit().apply {
                     putString("token", token)
                     putString("rol", rol)
-                    putLong("userId", respuesta.id) // Asegúrate que 'id' exista en LoginResponse
                     apply()
                 }
 
@@ -65,7 +60,7 @@ class LoginViewModel : ViewModel() {
                 onLoginSuccess()
 
             } catch (e: Exception) {
-                Log.e("LOGIN_ERROR", "Detalle: ${e.localizedMessage}")
+                Log.e("LOGIN_ERROR", "Error al iniciar sesión: ${e.localizedMessage}")
                 loginExitoso = false
             } finally {
                 estaCargando = false

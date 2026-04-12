@@ -6,12 +6,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    // 10.0.2.2 apunta al localhost de tu PC desde el emulador
+    // Asegúrate de que esta sea la IP de tu PC si usas un celular físico
     private const val BASE_URL = "http://10.0.2.2:8085/api/"
 
     fun create(context: Context): ApiService {
         val client = OkHttpClient.Builder()
-            .addInterceptor(AuthInterceptor(context))
+            .addInterceptor(AuthInterceptor(context)) // Asegura que el Token vaya en la cabecera
             .build()
 
         return Retrofit.Builder()
