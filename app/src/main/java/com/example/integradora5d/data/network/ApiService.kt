@@ -38,4 +38,12 @@ interface ApiService {
 
     @POST("auth/forgot-password")
     suspend fun solicitarRecuperacion(@Body body: Map<String, String>): Response<Map<String, String>>
+
+    // actualiza la informacion del perfil del usaurio
+    @PUT("usuario/{id}")
+    suspend fun actualizarPerfil(
+        @Path("id") id: Long,
+        @Body datos: UpdateUsuarioRequest
+    ): Response<Unit>
+
 }

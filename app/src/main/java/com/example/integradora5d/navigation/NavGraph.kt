@@ -69,7 +69,14 @@ fun NavGraph() {
 
         composable("profile") { ProfileScreen(navController) }
 
-        composable("edit_profile") { EditProfileScreen(navController) }
+        composable("edit_profile") {
+            val context = LocalContext.current
+            val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
+            val userId = prefs.getLong("idUsuario", 0L)
+
+            EditProfileScreen(navController = navController, idUsuario = userId)
+        }
 
         composable("crear_reporte") {
             val userId = prefs.getLong("userId", 0L).toInt()

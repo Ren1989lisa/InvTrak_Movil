@@ -1,16 +1,13 @@
 package com.example.integradora5d.ui.screen.perfil
 
-import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,27 +17,37 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.integradora5d.viewmodel.EditProfileViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditProfileScreen(navController: NavController) {
-
+fun EditProfileScreen(navController: NavController, idUsuario: Long) {
     val context = LocalContext.current
-    val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-
+    val editViewModel: EditProfileViewModel = viewModel()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    var nombre by remember { mutableStateOf(prefs.getString("nombre", "Fernanda Rodríguez Martínez") ?: "") }
-    var correo by remember { mutableStateOf(prefs.getString("correo", "fernandarod@email.com") ?: "") }
-    var fecha by remember { mutableStateOf(prefs.getString("fecha", "05/11/1980") ?: "") }
-    var curp by remember { mutableStateOf(prefs.getString("curp", "ROMF801105MDFDRN08") ?: "") }
-    var rol by remember { mutableStateOf(prefs.getString("rol", "Empleado") ?: "") }
-    var numeroEmpleado by remember { mutableStateOf("08001") }
-    var area by remember { mutableStateOf(prefs.getString("area", "Soporte técnico") ?: "") }
-    var password by remember { mutableStateOf(prefs.getString("password", "0001") ?: "") }
+    LaunchedEffect(Unit) {
+        editViewModel.cargarDatos(context)
+    }
+
+    if (editViewModel.exito) {
+        LaunchedEffect(Unit) {
+            Toast.makeText(context, "Perfil actualizado correctamente", Toast.LENGTH_SHORT).show()
+            navController.popBackStack()
+            editViewModel.exito = false
+        }
+    }
+
+    editViewModel.mensajeError?.let { error ->
+        LaunchedEffect(error) {
+            Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+            editViewModel.mensajeError = null
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -61,7 +68,6 @@ fun EditProfileScreen(navController: NavController) {
             )
         }
     ) { padding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -70,19 +76,20 @@ fun EditProfileScreen(navController: NavController) {
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            // REGRESAR
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color(0xFF0A4174))
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null,
+                        tint = Color(0xFF0A4174)
+                    )
                 }
                 Text("Regresar", color = Color(0xFF0A4174))
             }
 
-            // ICONO
             Icon(
                 Icons.Default.AccountCircle,
                 contentDescription = null,
@@ -91,64 +98,47 @@ fun EditProfileScreen(navController: NavController) {
             )
 
             Text(
-                nombre,
+                editViewModel.nombre,
                 color = Color(0xFF5F97AA),
                 textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // CAMPOS EDITABLES
-            EditField("Nombre completo", nombre) { nombre = it }
-            EditField("Correo", correo) { correo = it }
-            EditField("Fecha", fecha, isDate = true) { fecha = it }
-            EditField("CURP", curp) { curp = it }
-            EditField("Rol", rol) { rol = it }
-
-            // BLOQUEADO
-            EditField(
-                label = "Número de empleado",
-                value = numeroEmpleado,
-                isLocked = true,
-                onValueChange = {}
-            )
-
-            EditField("Área", area) { area = it }
-            EditField("Contraseña", password, isPassword = true) { password = it }
+            // --- CAMPOS CONECTADOS ---
+            EditField("Nombre completo", editViewModel.nombre) { editViewModel.nombre = it }
+            EditField("Correo", editViewModel.correo) { editViewModel.correo = it }
+            EditField("Fecha", editViewModel.fechaNacimiento, isDate = true) { editViewModel.fechaNacimiento = it }
+            EditField("CURP", editViewModel.curp) { editViewModel.curp = it }
+            EditField("Rol", editViewModel.rol, isLocked = true) { }
+            EditField("Número de empleado", editViewModel.numeroEmpleado, isLocked = true) { }
+            EditField("Área", editViewModel.area) { editViewModel.area = it }
+            EditField("Contraseña", "********", isLocked = true) { }
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // BOTONES
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-
                 Button(
-                    onClick = {
-                        // GUARDAR
-                        prefs.edit()
-                            .putString("nombre", nombre)
-                            .putString("correo", correo)
-                            .putString("fecha", fecha)
-                            .putString("curp", curp)
-                            .putString("rol", rol)
-                            .putString("area", area)
-                            .putString("password", password)
-                            .apply()
-
-                        navController.popBackStack()
-                    },
+                    onClick = { editViewModel.guardarCambios(context, idUsuario) },
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7CB9E8))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7CB9E8)),
+                    enabled = !editViewModel.estaCargando
                 ) {
-                    Text("Guardar", color = Color.White)
+                    if (editViewModel.estaCargando) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White)
+                    } else {
+                        Text("Guardar", color = Color.White)
+                    }
                 }
 
                 Button(
                     onClick = { navController.popBackStack() },
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFADA8))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFADA8)),
+                    enabled = !editViewModel.estaCargando
                 ) {
                     Text("Cancelar", color = Color.White)
                 }
@@ -157,13 +147,13 @@ fun EditProfileScreen(navController: NavController) {
     }
 }
 
+// ESTA ES LA FUNCIÓN QUE FALTABA PARA QUITAR EL ERROR
 @Composable
 fun EditField(
     label: String,
     value: String,
     isLocked: Boolean = false,
     isDate: Boolean = false,
-    isPassword: Boolean = false,
     onValueChange: (String) -> Unit
 ) {
     Row(
@@ -172,36 +162,27 @@ fun EditField(
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Text(
             label,
             modifier = Modifier.weight(1f),
             color = Color(0xFF1A4670),
             fontWeight = FontWeight.Bold
         )
-
         OutlinedTextField(
             value = value,
-            onValueChange = {
-                if (!isLocked) onValueChange(it)
-            },
+            onValueChange = { if (!isLocked) onValueChange(it) },
             readOnly = isLocked,
             modifier = Modifier.weight(1.5f),
             shape = RoundedCornerShape(12.dp),
-
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = Color.White,
                 focusedContainerColor = Color.White,
-                unfocusedIndicatorColor = Color(0xFFB7E1F7)
+                unfocusedIndicatorColor = Color(0xFFB7E1F7),
+                focusedIndicatorColor = Color(0xFF0A4174)
             ),
-
             trailingIcon = {
-                if (isLocked) {
-                    Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Gray)
-                }
-                if (isDate) {
-                    Icon(Icons.Default.DateRange, contentDescription = null)
-                }
+                if (isLocked) Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Gray)
+                else if (isDate) Icon(Icons.Default.DateRange, contentDescription = null)
             }
         )
     }

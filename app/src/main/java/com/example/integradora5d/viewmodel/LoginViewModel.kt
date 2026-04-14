@@ -12,14 +12,12 @@ class LoginViewModel : ViewModel() {
 
     var correo by mutableStateOf("")
         private set
-
     var contrasena by mutableStateOf("")
         private set
 
     var loginExitoso by mutableStateOf<Boolean?>(null)
     var estaCargando by mutableStateOf(false)
     var rol by mutableStateOf("")
-    var token by mutableStateOf("")
 
     fun onCorreoChange(value: String) { correo = value }
     fun onContrasenaChange(value: String) { contrasena = value }
@@ -40,27 +38,32 @@ class LoginViewModel : ViewModel() {
 
                 val respuesta = api.login(credenciales)
 
-                token = respuesta.accessToken
-                val rolesList = respuesta.roles
+                // 1. Extraer el ID que ahora sí envía Spring Boot
+                val userId = respuesta.idUsuario
 
+                val rolesList = respuesta.roles
                 rol = when {
                     rolesList.contains("ROLE_ADMINISTRADOR") -> "ADMIN"
                     rolesList.contains("ROLE_TECNICO") -> "TECNICO"
                     else -> "USUARIO"
                 }
 
+                // 2. Guardar en SharedPreferences
                 val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                 prefs.edit().apply {
-                    putString("token", token)
+                    putString("token", respuesta.accessToken)
                     putString("rol", rol)
+                    // Esta es la llave que leerá el NavGraph y el EditProfile
+                    putLong("idUsuario", userId)
                     apply()
                 }
 
+                Log.d("LOGIN_SUCCESS", "Usuario ID $userId guardado correctamente")
                 loginExitoso = true
                 onLoginSuccess()
 
             } catch (e: Exception) {
-                Log.e("LOGIN_ERROR", "Error al iniciar sesión: ${e.localizedMessage}")
+                Log.e("LOGIN_ERROR", "Error: ${e.localizedMessage}")
                 loginExitoso = false
             } finally {
                 estaCargando = false

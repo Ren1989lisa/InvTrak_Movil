@@ -6,5 +6,6 @@ data class LoginResponse(
     @SerializedName("accessToken") val accessToken: String,
     @SerializedName("tokenType") val tokenType: String,
     @SerializedName("primerAcceso") val primerAcceso: Boolean,
-    @SerializedName("roles") val roles: List<String>
+    @SerializedName("roles") val roles: List<String>,
+    @SerializedName("idUsuario") val idUsuario: Long
 )
