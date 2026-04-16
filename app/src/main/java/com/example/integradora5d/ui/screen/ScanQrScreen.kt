@@ -16,10 +16,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -46,10 +43,15 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnsafeOptInUsageError")
 @Composable
 fun ScanQrScreen(
-    navController: NavController,
-    qrViewModel: EscaneoQRViewModel = viewModel()
+    navController: NavController
 ) {
     val context = LocalContext.current
+
+    // CORRECCIÓN: Inicialización usando el Factory personalizado
+    val qrViewModel: EscaneoQRViewModel = viewModel(
+        factory = EscaneoQRViewModel.Factory(context)
+    )
+
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -59,7 +61,6 @@ fun ScanQrScreen(
     var alreadyScanned by remember { mutableStateOf(false) }
     var startScanning by remember { mutableStateOf(false) }
 
-    // Observamos estados del ViewModel
     val isSearching by qrViewModel.isSearching.collectAsState()
     val errorMessage by qrViewModel.errorMessage.collectAsState()
     val bienEncontrado by qrViewModel.bienEncontrado.collectAsState()
@@ -73,19 +74,20 @@ fun ScanQrScreen(
         )
     }
 
-    // EFECTO 1: Si el servidor responde con éxito, navegamos
+    // Efecto de Navegación Exitosa
     LaunchedEffect(bienEncontrado) {
-        if (bienEncontrado != null) {
+        bienEncontrado?.let {
+            // Reseteamos el ViewModel antes de irnos para que al volver esté limpio
+            qrViewModel.resetScanner()
             navController.navigate("reportinfo")
-            // Opcional: qrViewModel.limpiarEstado() si tienes esa función
         }
     }
 
-    // EFECTO 2: Si hay error, avisamos y permitimos re-escaneo
+    // Manejo de Errores
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-            alreadyScanned = false
+            alreadyScanned = false // Permitir intentar de nuevo tras el error
         }
     }
 
@@ -96,7 +98,6 @@ fun ScanQrScreen(
         if (granted) startScanning = true
     }
 
-    // Lógica de procesamiento ajustada a tu ViewModel actual
     fun processQrText(text: String) {
         if (!alreadyScanned && !isSearching) {
             alreadyScanned = true
@@ -111,9 +112,7 @@ fun ScanQrScreen(
             val image = InputImage.fromFilePath(context, it)
             scanner.process(image)
                 .addOnSuccessListener { barcodes ->
-                    barcodes.firstOrNull()?.rawValue?.let { code ->
-                        processQrText(code)
-                    }
+                    barcodes.firstOrNull()?.rawValue?.let { code -> processQrText(code) }
                 }
         }
     }
@@ -127,9 +126,7 @@ fun ScanQrScreen(
                     val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
                     scanner.process(image)
                         .addOnSuccessListener { barcodes ->
-                            barcodes.firstOrNull()?.rawValue?.let { code ->
-                                processQrText(code)
-                            }
+                            barcodes.firstOrNull()?.rawValue?.let { code -> processQrText(code) }
                         }
                         .addOnCompleteListener { imageProxy.close() }
                 } else {
@@ -159,9 +156,13 @@ fun ScanQrScreen(
             }
         ) { padding ->
             Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                // Botón Volver
                 IconButton(
                     onClick = { navController.popBackStack() },
-                    modifier = Modifier.padding(16.dp).align(Alignment.TopStart).background(Color(0xFF0A4174).copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .align(Alignment.TopStart)
+                        .background(Color(0xFF0A4174).copy(alpha = 0.1f), RoundedCornerShape(8.dp))
                 ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color(0xFF0A4174))
                 }
@@ -180,6 +181,7 @@ fun ScanQrScreen(
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
 
+                    // Marco de Escaneo con colores originales
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
