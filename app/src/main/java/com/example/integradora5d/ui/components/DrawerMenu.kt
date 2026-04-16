@@ -81,13 +81,13 @@ fun DrawerMenu(
             navController.navigate("bienes")
         }*/
 
-        DrawerItem(
+        /*DrawerItem(
             icon = Icons.Default.QrCodeScanner,
             label = "Escanear QR",
             selected = currentRoute == "scanqr"
         ) {
             navController.navigate("scanqr")
-        }
+        }*/
 
         DrawerItem(
             icon = Icons.Default.History,

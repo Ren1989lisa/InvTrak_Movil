@@ -7,7 +7,6 @@ import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.integradora5d.data.network.RetrofitClient
-import com.example.integradora5d.data.model.Reporte // Asegúrate de tener este modelo o el que uses
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -24,21 +23,17 @@ class ReporteViewModel : ViewModel() {
     var mensajeError by mutableStateOf<String?>(null)
     var exito by mutableStateOf(false)
 
-    // Helper para convertir URI a MultipartBody.Part
     private fun uriToMultipart(context: Context, uri: Uri): MultipartBody.Part? {
         return try {
             val file = File(context.cacheDir, "temp_reporte_${System.currentTimeMillis()}.jpg")
             context.contentResolver.openInputStream(uri)?.use { input ->
                 FileOutputStream(file).use { output -> input.copyTo(output) }
             }
-
-            // Creamos el RequestBody para la imagen
             val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
-
-            // IMPORTANTE: El nombre "archivos" debe coincidir con @RequestPart en el Controller
+            // Nombre "archivos" coincide con @RequestPart en ReporteController.java
             MultipartBody.Part.createFormData("archivos", file.name, requestFile)
         } catch (e: Exception) {
-            Log.e("URI_TO_MULTIPART", "Error al procesar imagen: ${e.message}")
+            Log.e("URI_TO_MULTIPART", "Error: ${e.message}")
             null
         }
     }
@@ -51,43 +46,33 @@ class ReporteViewModel : ViewModel() {
         imagenes: List<Uri>,
         onSuccess: () -> Unit
     ) {
-        if (etiqueta.isBlank() || descripcion.isBlank()) {
-            mensajeError = "Por favor, completa los campos requeridos."
-            return
-        }
-
         viewModelScope.launch {
             estaCargando = true
             mensajeError = null
             try {
-                // Extraer ID numérico de la etiqueta
-                val soloNumeros = etiqueta.filter { it.isDigit() }
-                val activoId = soloNumeros.toLongOrNull()
-
+                // Extraer el número de la etiqueta (ej: "ID: 5" -> 5)
+                val activoId = etiqueta.filter { it.isDigit() }.toLongOrNull()
+                
                 if (activoId == null) {
-                    mensajeError = "La etiqueta debe contener un ID numérico válido."
-                    estaCargando = false
+                    mensajeError = "La etiqueta debe contener el número ID del bien."
                     return@launch
                 }
 
-                // 1. Crear el objeto que coincide con CreateReporteDTO
-                val reporteMap = mapOf(
+                // DATA QUE COINCIDE CON CreateReporteDTO.java
+                val reporteData = mapOf(
                     "activoId" to activoId,
-                    "tipoFalla" to "Falla técnica", // Valor por defecto según tu DTO
+                    "tipoFalla" to estatus, // "Activo", "En mantenimiento", "Dañado"
                     "descripcion" to descripcion,
-                    "prioridadId" to 1L // Valor por defecto
+                    "prioridadId" to 1L // Valor por defecto (Baja/Media)
                 )
 
-                // 2. Convertir a JSON y envolver en RequestBody con Content-Type correcto
-                val jsonBody = Gson().toJson(reporteMap)
-                val datosPart = jsonBody.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+                val jsonBody = Gson().toJson(reporteData)
+                // Es vital especificar application/json aquí
+                val datosPart = jsonBody.toRequestBody("application/json".toMediaTypeOrNull())
 
-                // 3. Convertir lista de URIs a lista de MultipartBody.Part
                 val multipartImagenes = imagenes.mapNotNull { uriToMultipart(context, it) }
 
                 val api = RetrofitClient.create(context)
-
-                // 4. Llamada al servidor pasando las dos partes: "datos" y "archivos"
                 val response = api.crearReporte(
                     datos = datosPart,
                     archivos = if (multipartImagenes.isEmpty()) null else multipartImagenes
@@ -97,13 +82,13 @@ class ReporteViewModel : ViewModel() {
                     exito = true
                     onSuccess()
                 } else {
-                    val errorBody = response.errorBody()?.string() ?: "Error desconocido"
-                    Log.e("API_ERROR", "Código: ${response.code()} Body: $errorBody")
-                    mensajeError = "Servidor: Error ${response.code()}"
+                    val errorDetail = response.errorBody()?.string() ?: "Error desconocido"
+                    Log.e("API_ERROR", "Status: ${response.code()} -> $errorDetail")
+                    mensajeError = "Error del servidor (${response.code()})"
                 }
             } catch (e: Exception) {
-                mensajeError = "Error de conexión: Revisa tu internet o el servidor"
-                Log.e("NETWORK_ERROR", e.localizedMessage ?: "Error desconocido")
+                mensajeError = "No hay conexión con el servidor"
+                Log.e("NETWORK_ERROR", e.localizedMessage ?: "Error")
             } finally {
                 estaCargando = false
             }
