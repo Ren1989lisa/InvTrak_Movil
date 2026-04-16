@@ -31,19 +31,20 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.ceil
 
+// ... (tus imports se mantienen igual)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BienRegistradoScreen(
     navController: NavController,
     viewModel: BienRegistradoViewModel = viewModel(),
-    userRole: String // Recibimos el rol desde el NavGraph
+    userRole: String
 ) {
     var busqueda by remember { mutableStateOf("") }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // CARGA DE DATOS: Esto conecta tu UI con la Base de Datos
     LaunchedEffect(Unit) {
         viewModel.cargarDatosSegunRol(context, userRole)
     }
@@ -136,8 +137,6 @@ fun BienRegistradoScreen(
                 }
             }
         ) { padding ->
-            // BottomSheet de filtros se mantiene igual...
-
             Column(modifier = Modifier.padding(padding).fillMaxSize().padding(16.dp)) {
                 OutlinedTextField(
                     value = busqueda,
@@ -149,7 +148,6 @@ fun BienRegistradoScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // CAMBIO AQUÍ: Mostrar carga o lista
                 if (viewModel.estaCargando) {
                     Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = Color(0xFF0A4174))
@@ -158,8 +156,9 @@ fun BienRegistradoScreen(
                     LazyColumn(modifier = Modifier.weight(1f)) {
                         items(bienesPagina) { bien ->
                             BienRegistradoCard(bien = bien, onClick = {
-                                navController.currentBackStackEntry?.savedStateHandle?.set("bienSeleccionado", bien)
-                                navController.navigate("bien_detalle")
+                                // CAMBIO CLAVE: Ya no usamos el savedStateHandle pesado.
+                                // Pasamos el ID directamente en la ruta de navegación.
+                                navController.navigate("bien_detalle/${bien.idOriginal}")
                             })
                         }
                     }
@@ -167,7 +166,7 @@ fun BienRegistradoScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // --- PAGINACIÓN (Tu diseño original) ---
+                // --- PAGINACIÓN ---
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,

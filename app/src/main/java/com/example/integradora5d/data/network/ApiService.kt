@@ -17,12 +17,6 @@ interface ApiService {
     @GET("bienes/{etiqueta}")
     suspend fun getBienByEtiqueta(@Path("etiqueta") etiqueta: String): BienRegistrado
 
-    @Multipart
-    @POST("reporte")
-    suspend fun crearReporte(
-        @Part("datos") datos: RequestBody,
-        @Part archivos: List<MultipartBody.Part>? = null
-    ): Response<Unit>
 
     @GET("producto")
     suspend fun getBienesReales(): List<BeanProductoResponse>
@@ -45,5 +39,18 @@ interface ApiService {
         @Path("id") id: Long,
         @Body datos: UpdateUsuarioRequest
     ): Response<Unit>
+
+    @POST("auth/forgot-password")
+    suspend fun solicitarRecuperacion(@Body request: ForgotPasswordRequest): Response<Unit>
+// Cambiamos Map por ForgotPasswordRequest y Response<Unit> porque Spring devuelve un String o Void
+
+    // crear reporte
+    @Multipart
+    @POST("reporte")
+    suspend fun crearReporte(
+        @Part("datos") datos: RequestBody,
+        @Part archivos: List<MultipartBody.Part>? = null
+    ): Response<Unit>
+
 
 }

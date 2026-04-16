@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.LifecycleCameraController
@@ -33,8 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.integradora5d.ui.components.DrawerMenu
+import com.example.integradora5d.ui.viewmodel.EscaneoQRViewModel
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.launch
@@ -43,7 +46,8 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnsafeOptInUsageError")
 @Composable
 fun ScanQrScreen(
-    navController: NavController
+    navController: NavController,
+    qrViewModel: EscaneoQRViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -51,10 +55,14 @@ fun ScanQrScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val sheetState = rememberModalBottomSheetState()
 
-    // Estados
     var showSheet by remember { mutableStateOf(false) }
     var alreadyScanned by remember { mutableStateOf(false) }
     var startScanning by remember { mutableStateOf(false) }
+
+    // Observamos estados del ViewModel
+    val isSearching by qrViewModel.isSearching.collectAsState()
+    val errorMessage by qrViewModel.errorMessage.collectAsState()
+    val bienEncontrado by qrViewModel.bienEncontrado.collectAsState()
 
     val cameraController = remember { LifecycleCameraController(context) }
     val scanner = remember { BarcodeScanning.getClient() }
@@ -65,7 +73,22 @@ fun ScanQrScreen(
         )
     }
 
-    // Launcher para Permisos
+    // EFECTO 1: Si el servidor responde con éxito, navegamos
+    LaunchedEffect(bienEncontrado) {
+        if (bienEncontrado != null) {
+            navController.navigate("reportinfo")
+            // Opcional: qrViewModel.limpiarEstado() si tienes esa función
+        }
+    }
+
+    // EFECTO 2: Si hay error, avisamos y permitimos re-escaneo
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            alreadyScanned = false
+        }
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -73,7 +96,14 @@ fun ScanQrScreen(
         if (granted) startScanning = true
     }
 
-    // Launcher para Galería (Subir imagen)
+    // Lógica de procesamiento ajustada a tu ViewModel actual
+    fun processQrText(text: String) {
+        if (!alreadyScanned && !isSearching) {
+            alreadyScanned = true
+            qrViewModel.procesarCodigoEscaneado(text)
+        }
+    }
+
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -81,32 +111,24 @@ fun ScanQrScreen(
             val image = InputImage.fromFilePath(context, it)
             scanner.process(image)
                 .addOnSuccessListener { barcodes ->
-                    if (barcodes.isNotEmpty()) {
-                        navController.navigate("reportinfo")
+                    barcodes.firstOrNull()?.rawValue?.let { code ->
+                        processQrText(code)
                     }
                 }
         }
     }
 
-    // Análisis de Cámara
     LaunchedEffect(startScanning) {
         if (startScanning && hasPermission) {
             cameraController.bindToLifecycle(lifecycleOwner)
             cameraController.setImageAnalysisAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
-                if (alreadyScanned) {
-                    imageProxy.close()
-                    return@setImageAnalysisAnalyzer
-                }
                 val mediaImage = imageProxy.image
-                if (mediaImage != null) {
+                if (mediaImage != null && !alreadyScanned && !isSearching) {
                     val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
                     scanner.process(image)
                         .addOnSuccessListener { barcodes ->
-                            for (barcode in barcodes) {
-                                if (barcode.rawValue?.isNotEmpty() == true) {
-                                    alreadyScanned = true
-                                    navController.navigate("reportinfo")
-                                }
+                            barcodes.firstOrNull()?.rawValue?.let { code ->
+                                processQrText(code)
                             }
                         }
                         .addOnCompleteListener { imageProxy.close() }
@@ -137,8 +159,6 @@ fun ScanQrScreen(
             }
         ) { padding ->
             Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-
-                // Botón Regresar
                 IconButton(
                     onClick = { navController.popBackStack() },
                     modifier = Modifier.padding(16.dp).align(Alignment.TopStart).background(Color(0xFF0A4174).copy(alpha = 0.1f), RoundedCornerShape(8.dp))
@@ -152,7 +172,7 @@ fun ScanQrScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Selecciona una opción para\nidentificar el activo.",
+                        text = if (isSearching) "Buscando en servidor..." else "Selecciona una opción para\nidentificar el activo.",
                         color = Color(0xFF49769F),
                         textAlign = TextAlign.Center,
                         lineHeight = 22.sp,
@@ -160,14 +180,13 @@ fun ScanQrScreen(
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
 
-                    // VISOR / CUADRO CLICKEABLE
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(320.dp)
                             .background(Color(0xFFEBF5F9), RoundedCornerShape(24.dp))
                             .border(2.dp, Color(0xFF7FA9C4), RoundedCornerShape(24.dp))
-                            .clickable { showSheet = true }, // Abrir menú de opciones
+                            .clickable { if (!isSearching) showSheet = true },
                         contentAlignment = Alignment.Center
                     ) {
                         if (startScanning && hasPermission) {
@@ -175,6 +194,11 @@ fun ScanQrScreen(
                                 factory = { ctx -> PreviewView(ctx).apply { controller = cameraController } },
                                 modifier = Modifier.fillMaxSize()
                             )
+                            if (isSearching) {
+                                Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator(color = Color.White)
+                                }
+                            }
                         } else {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(Icons.Default.QrCodeScanner, null, modifier = Modifier.size(70.dp), tint = Color(0xFF7FA9C4))
@@ -186,7 +210,6 @@ fun ScanQrScreen(
                     Spacer(modifier = Modifier.height(40.dp))
                 }
 
-                // --- MODAL BOTTOM SHEET (Opciones) ---
                 if (showSheet) {
                     ModalBottomSheet(
                         onDismissRequest = { showSheet = false },
@@ -200,7 +223,6 @@ fun ScanQrScreen(
                             Text("¿Cómo deseas escanear?", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF0A4174))
                             Spacer(modifier = Modifier.height(20.dp))
 
-                            // Opción 1: Cámara
                             Button(
                                 onClick = {
                                     showSheet = false
@@ -210,14 +232,11 @@ fun ScanQrScreen(
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF49769F))
                             ) {
-                                Icon(Icons.Default.PhotoCamera, null)
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text("Usar Cámara (Escanear QR)")
+                                Icon(Icons.Default.PhotoCamera, null); Spacer(Modifier.width(10.dp)); Text("Usar Cámara (Escanear QR)")
                             }
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            // Opción 2: Galería
                             OutlinedButton(
                                 onClick = {
                                     showSheet = false
@@ -227,9 +246,7 @@ fun ScanQrScreen(
                                 shape = RoundedCornerShape(12.dp),
                                 border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF49769F))
                             ) {
-                                Icon(Icons.Default.Image, null, tint = Color(0xFF49769F))
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text("Subir Imagen desde Galería", color = Color(0xFF49769F))
+                                Icon(Icons.Default.Image, null, tint = Color(0xFF49769F)); Spacer(Modifier.width(10.dp)); Text("Subir Imagen desde Galería", color = Color(0xFF49769F))
                             }
                         }
                     }

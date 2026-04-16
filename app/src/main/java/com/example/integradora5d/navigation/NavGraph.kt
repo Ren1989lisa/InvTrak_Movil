@@ -3,7 +3,10 @@ package com.example.integradora5d.navigation
 import android.content.Context
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.example.integradora5d.data.model.BienRegistrado
 import com.example.integradora5d.ui.screen.*
 import com.example.integradora5d.ui.screen.bienes.*
@@ -11,6 +14,7 @@ import com.example.integradora5d.ui.screen.historial.HistorialScreen
 import com.example.integradora5d.ui.screen.login.*
 import com.example.integradora5d.ui.screen.perfil.*
 import com.example.integradora5d.ui.screen.reporte.CrearReporte
+import com.example.integradora5d.viewmodel.BienRegistradoViewModel
 
 @Composable
 fun NavGraph() {
@@ -42,17 +46,19 @@ fun NavGraph() {
         }
 
         composable("bienes") {
-            // Pasamos el rol actual para que la pantalla sepa qué cargar
-            BienRegistradoScreen(navController = navController, userRole = rol)
+                BienRegistradoScreen(navController = navController, userRole = rol)
         }
 
-        composable("bien_detalle") {
-            val bien = navController.previousBackStackEntry?.savedStateHandle?.get<BienRegistrado>("bienSeleccionado")
-            if (bien != null) {
-                BienDetalleScreen(navController, bien)
-            } else {
-                LaunchedEffect(Unit) { navController.popBackStack() }
-            }
+        // Dentro de tu NavHost...
+        composable(
+            route = "bien_detalle/{bienId}", // Definimos que la ruta lleva un parámetro
+            arguments = listOf(navArgument("bienId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            // Extraemos el ID de los argumentos de la ruta
+            val id = backStackEntry.arguments?.getLong("bienId") ?: 0L
+
+            // Se lo pasamos a la pantalla (que ahora recibe bienId: Long)
+            BienDetalleScreen(navController = navController, bienId = id)
         }
 
         composable("scanqr") { ScanQrScreen(navController) }

@@ -2,10 +2,12 @@ package com.example.integradora5d.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.integradora5d.data.network.RetrofitClient
+import com.example.integradora5d.data.model.Reporte // Asegúrate de tener este modelo o el que uses
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -20,18 +22,25 @@ class ReporteViewModel : ViewModel() {
         private set
 
     var mensajeError by mutableStateOf<String?>(null)
-        private set
+    var exito by mutableStateOf(false)
 
+    // Helper para convertir URI a MultipartBody.Part
     private fun uriToMultipart(context: Context, uri: Uri): MultipartBody.Part? {
         return try {
             val file = File(context.cacheDir, "temp_reporte_${System.currentTimeMillis()}.jpg")
             context.contentResolver.openInputStream(uri)?.use { input ->
                 FileOutputStream(file).use { output -> input.copyTo(output) }
             }
-            // Importante: El nombre "archivos" DEBE coincidir con el @RequestPart de tu Controller
+
+            // Creamos el RequestBody para la imagen
             val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
+
+            // IMPORTANTE: El nombre "archivos" debe coincidir con @RequestPart en el Controller
             MultipartBody.Part.createFormData("archivos", file.name, requestFile)
-        } catch (e: Exception) { null }
+        } catch (e: Exception) {
+            Log.e("URI_TO_MULTIPART", "Error al procesar imagen: ${e.message}")
+            null
+        }
     }
 
     fun enviarReporte(
@@ -51,46 +60,50 @@ class ReporteViewModel : ViewModel() {
             estaCargando = true
             mensajeError = null
             try {
-                // Limpieza de ID: "Etq. bien: ID: 1" -> "1"
+                // Extraer ID numérico de la etiqueta
                 val soloNumeros = etiqueta.filter { it.isDigit() }
                 val activoId = soloNumeros.toLongOrNull()
 
                 if (activoId == null) {
-                    mensajeError = "La etiqueta no contiene un ID valido."
+                    mensajeError = "La etiqueta debe contener un ID numérico válido."
                     estaCargando = false
                     return@launch
                 }
 
-                // Mapa exacto para CreateReporteDTO
+                // 1. Crear el objeto que coincide con CreateReporteDTO
                 val reporteMap = mapOf(
                     "activoId" to activoId,
-                    "tipoFalla" to "Falla técnica",
+                    "tipoFalla" to "Falla técnica", // Valor por defecto según tu DTO
                     "descripcion" to descripcion,
                     "prioridadId" to 1L // Valor por defecto
                 )
 
+                // 2. Convertir a JSON y envolver en RequestBody con Content-Type correcto
                 val jsonBody = Gson().toJson(reporteMap)
-                // Usamos "application/json" para que @RequestPart lo procese correctamente
-                val requestBody = jsonBody.toRequestBody("application/json".toMediaTypeOrNull())
+                val datosPart = jsonBody.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
 
+                // 3. Convertir lista de URIs a lista de MultipartBody.Part
                 val multipartImagenes = imagenes.mapNotNull { uriToMultipart(context, it) }
 
                 val api = RetrofitClient.create(context)
 
-                // Si no hay imagenes, enviamos null para que el Controller lo maneje
+                // 4. Llamada al servidor pasando las dos partes: "datos" y "archivos"
                 val response = api.crearReporte(
-                    datos = requestBody,
+                    datos = datosPart,
                     archivos = if (multipartImagenes.isEmpty()) null else multipartImagenes
                 )
 
                 if (response.isSuccessful) {
+                    exito = true
                     onSuccess()
                 } else {
                     val errorBody = response.errorBody()?.string() ?: "Error desconocido"
-                    mensajeError = "Servidor (${response.code()}): $errorBody"
+                    Log.e("API_ERROR", "Código: ${response.code()} Body: $errorBody")
+                    mensajeError = "Servidor: Error ${response.code()}"
                 }
             } catch (e: Exception) {
-                mensajeError = "Error de red: ${e.localizedMessage}"
+                mensajeError = "Error de conexión: Revisa tu internet o el servidor"
+                Log.e("NETWORK_ERROR", e.localizedMessage ?: "Error desconocido")
             } finally {
                 estaCargando = false
             }

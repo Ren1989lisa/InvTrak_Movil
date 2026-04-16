@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.integradora5d.data.model.ForgotPasswordRequest
 import com.example.integradora5d.data.network.RetrofitClient
 import kotlinx.coroutines.launch
 
@@ -20,7 +21,7 @@ class ResetPasswordViewModel : ViewModel() {
     var mensajeExito by mutableStateOf<String?>(null)
         private set
 
-    fun solicitarRecuperacion(context: Context, correo: String, onSuccess: () -> Unit) {
+    fun solicitarRecuperacion(correo: String, onSuccess: () -> Unit) {
         if (correo.isBlank()) {
             mensajeError = "Por favor, ingresa tu correo electrónico"
             return
@@ -29,20 +30,21 @@ class ResetPasswordViewModel : ViewModel() {
         viewModelScope.launch {
             isLoading = true
             mensajeError = null
-            mensajeExito = null
-
             try {
-                val api = RetrofitClient.create(context)
-                val response = api.solicitarRecuperacion(mapOf("correo" to correo))
+                // Usamos el cliente público
+                val api = RetrofitClient.createPublic()
+                val response = api.solicitarRecuperacion(ForgotPasswordRequest(correo))
 
                 if (response.isSuccessful) {
                     mensajeExito = "Código enviado. Revisa tu bandeja de entrada."
                     onSuccess()
                 } else {
-                    mensajeError = "El correo ingresado no está registrado en el sistema."
+                    // Si el servidor responde 404 o 400
+                    mensajeError = "El correo ingresado no está registrado."
                 }
             } catch (e: Exception) {
-                mensajeError = "No se pudo conectar con el servidor. Verifica tu internet."
+                // Error de conexión (IP incorrecta o servidor apagado)
+                mensajeError = "Error de conexión: ${e.localizedMessage}"
             } finally {
                 isLoading = false
             }

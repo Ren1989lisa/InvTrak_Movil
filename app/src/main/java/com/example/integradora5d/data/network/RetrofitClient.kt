@@ -6,14 +6,22 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    // Asegúrate de que esta sea la IP de tu PC si usas un celular físico
     private const val BASE_URL = "http://10.0.2.2:8085/api/"
 
+    // Cliente para rutas que NECESITAN token
     fun create(context: Context): ApiService {
         val client = OkHttpClient.Builder()
-            .addInterceptor(AuthInterceptor(context)) // Asegura que el Token vaya en la cabecera
+            .addInterceptor(AuthInterceptor(context))
             .build()
+        return buildRetrofit(client)
+    }
 
+    fun createPublic(): ApiService {
+        val client = OkHttpClient.Builder().build() // Sin interceptor
+        return buildRetrofit(client)
+    }
+
+    private fun buildRetrofit(client: OkHttpClient): ApiService {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)

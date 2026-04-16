@@ -21,7 +21,6 @@ class BienRegistradoViewModel : ViewModel() {
         val role = userRole.uppercase().trim()
         Log.d("VIEWMODEL", "Cargando datos para el rol: $role")
 
-        // Si el rol es técnico, mostramos usuarios, si no, mostramos bienes
         if (role == "TECNICO") {
             cargarUsuarios(context)
         } else {
@@ -39,6 +38,8 @@ class BienRegistradoViewModel : ViewModel() {
                 if (respuesta.isNotEmpty()) {
                     val listaMapeada = respuesta.map { producto ->
                         BienRegistrado(
+                            // GUARDAMOS EL ID NUMÉRICO REAL AQUÍ
+                            idOriginal = producto.id_producto.toLong(),
                             etiqueta = "ID: ${producto.id_producto}",
                             tipo = "Activo",
                             descripcion = producto.nombre ?: "Sin nombre",
@@ -68,6 +69,8 @@ class BienRegistradoViewModel : ViewModel() {
 
                 val listaMapeada = usuarios.map { user ->
                     BienRegistrado(
+                        // Para usuarios, si no hay ID de producto, usamos 0 o su ID de usuario
+                        idOriginal = 0L,
                         etiqueta = user.nombre ?: "Usuario",
                         tipo = "Técnico",
                         descripcion = user.correo ?: "",
