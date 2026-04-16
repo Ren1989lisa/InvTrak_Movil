@@ -38,29 +38,31 @@ class LoginViewModel : ViewModel() {
 
                 val respuesta = api.login(credenciales)
 
-                // 1. Extraer el ID que ahora sí envía Spring Boot
                 val userId = respuesta.idUsuario
-
                 val rolesList = respuesta.roles
+
                 rol = when {
                     rolesList.contains("ROLE_ADMINISTRADOR") -> "ADMIN"
                     rolesList.contains("ROLE_TECNICO") -> "TECNICO"
                     else -> "USUARIO"
                 }
 
-                // 2. Guardar en SharedPreferences
+                // GUARDADO CRÍTICO: Usamos commit() para asegurar la escritura antes de navegar
                 val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                prefs.edit().apply {
+                val success = prefs.edit().apply {
                     putString("token", respuesta.accessToken)
                     putString("rol", rol)
-                    // Esta es la llave que leerá el NavGraph y el EditProfile
                     putLong("idUsuario", userId)
-                    apply()
-                }
+                }.commit() // commit() es síncrono y devuelve true si se guardó bien
 
-                Log.d("LOGIN_SUCCESS", "Usuario ID $userId guardado correctamente")
-                loginExitoso = true
-                onLoginSuccess()
+                if (success) {
+                    Log.d("LOGIN_SUCCESS", "Usuario ID $userId y Token guardados correctamente")
+                    loginExitoso = true
+                    onLoginSuccess()
+                } else {
+                    Log.e("LOGIN_ERROR", "Error al escribir en SharedPreferences")
+                    loginExitoso = false
+                }
 
             } catch (e: Exception) {
                 Log.e("LOGIN_ERROR", "Error: ${e.localizedMessage}")

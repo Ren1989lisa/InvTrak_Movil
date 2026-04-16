@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitClient {
     // CORRECCIÓN: La URL base no debe repetir el /api/ si tus interfaces ya lo tienen
     // O si lo dejas aquí, asegúrate de que en ApiService la ruta no empiece con /
-    private const val BASE_URL = "http://10.0.2.2:8085/"
+    private const val BASE_URL = "http://10.0.2.2:8085/api/"
 
     fun create(context: Context): ApiService {
         val client = OkHttpClient.Builder()

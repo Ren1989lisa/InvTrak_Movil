@@ -7,7 +7,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.example.integradora5d.data.model.BienRegistrado
 import com.example.integradora5d.ui.screen.*
 import com.example.integradora5d.ui.screen.bienes.*
 import com.example.integradora5d.ui.screen.historial.HistorialScreen
@@ -21,8 +20,12 @@ fun NavGraph() {
     val navController = rememberNavController()
     val context = LocalContext.current
 
+    // Unificamos el acceso a SharedPreferences
     val prefs = remember { context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE) }
     var rol by remember { mutableStateOf(prefs.getString("rol", "") ?: "") }
+
+    // El ViewModel se define aquí para que persista durante toda la navegación de bienes
+    val bienViewModel: BienRegistradoViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = "login") {
 
@@ -46,19 +49,23 @@ fun NavGraph() {
         }
 
         composable("bienes") {
-                BienRegistradoScreen(navController = navController, userRole = rol)
+            BienRegistradoScreen(
+                navController = navController, 
+                viewModel = bienViewModel, 
+                userRole = rol
+            )
         }
 
-        // Dentro de tu NavHost...
         composable(
-            route = "bien_detalle/{bienId}", // Definimos que la ruta lleva un parámetro
+            route = "bien_detalle/{bienId}",
             arguments = listOf(navArgument("bienId") { type = NavType.LongType })
         ) { backStackEntry ->
-            // Extraemos el ID de los argumentos de la ruta
             val id = backStackEntry.arguments?.getLong("bienId") ?: 0L
-
-            // Se lo pasamos a la pantalla (que ahora recibe bienId: Long)
-            BienDetalleScreen(navController = navController, bienId = id)
+            BienDetalleScreen(
+                navController = navController, 
+                bienId = id, 
+                viewModel = bienViewModel
+            )
         }
 
         composable("scanqr") { ScanQrScreen(navController) }
@@ -68,12 +75,13 @@ fun NavGraph() {
             else LaunchedEffect(Unit) { navController.popBackStack() }
         }
 
-        // Dentro de tu NavHost...
         composable(
             route = "historial/{etiqueta}",
-            arguments = listOf(navArgument("etiqueta") { type = NavType.StringType })
+            arguments = listOf(navArgument("etiqueta") { 
+                type = NavType.StringType
+                defaultValue = "0"
+            })
         ) { backStackEntry ->
-            // Extraemos de forma segura
             val etiqueta = backStackEntry.arguments?.getString("etiqueta") ?: "0"
             HistorialScreen(navController = navController, etiquetaActivo = etiqueta)
         }
@@ -81,16 +89,14 @@ fun NavGraph() {
         composable("profile") { ProfileScreen(navController) }
 
         composable("edit_profile") {
-            val context = LocalContext.current
-            val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-
+            // CORREGIDO: Usamos "idUsuario" que es la clave que usas en el Login
             val userId = prefs.getLong("idUsuario", 0L)
-
             EditProfileScreen(navController = navController, idUsuario = userId)
         }
 
         composable("crear_reporte") {
-            val userId = prefs.getLong("userId", 0L).toInt()
+            // CORREGIDO: Usamos "idUsuario" consistentemente
+            val userId = prefs.getLong("idUsuario", 0L).toInt()
             val rolActual = rol.uppercase()
             if (rolActual == "USER" || rolActual == "USUARIO" || rolActual == "ADMIN") {
                 CrearReporte(navController = navController, usuarioId = userId)

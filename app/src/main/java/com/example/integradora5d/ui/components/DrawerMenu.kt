@@ -73,20 +73,12 @@ fun DrawerMenu(
             navController.navigate("bienes")
         }
 
-        DrawerItem(
+        /*DrawerItem(
             icon = Icons.Default.Inventory,
             label = "Mis Bienes",
             selected = currentRoute == "bienes"
         ) {
             navController.navigate("bienes")
-        }
-
-        /*DrawerItem(
-            icon = Icons.Default.People,
-            label = "Usuarios",
-            selected = currentRoute == "usuarios"
-        ) {
-            navController.navigate("usuarios")
         }*/
 
         DrawerItem(
@@ -102,7 +94,8 @@ fun DrawerMenu(
             label = "Historial",
             selected = currentRoute == "historial"
         ) {
-            navController.navigate("historial")
+            // CORRECCIÓN: Se añade "/0" para que la ruta sea válida y no cierre la app
+            navController.navigate("historial/0")
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -127,3 +120,5 @@ fun DrawerMenu(
         }
     }
 }
+
+// Nota: Asegúrate de tener el composable DrawerItem definido abajo o en otro archivo.

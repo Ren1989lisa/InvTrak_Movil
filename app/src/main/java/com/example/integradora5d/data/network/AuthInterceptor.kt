@@ -7,42 +7,40 @@ import okhttp3.Response
 
 class AuthInterceptor(context: Context) : Interceptor {
 
-    // Usamos applicationContext para evitar fugas de memoria
-    private val prefs = context.applicationContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    private val applicationContext = context.applicationContext
+    private val prefs = applicationContext.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        // Obtenemos el token y aplicamos trim() para eliminar espacios accidentales
+        // Recuperamos y limpiamos el token
         val token = prefs.getString("token", null)?.trim()
         val originalRequest = chain.request()
         val requestBuilder = originalRequest.newBuilder()
 
         val path = originalRequest.url.encodedPath
 
-        // Lista de exclusión más robusta
+        // Rutas que no requieren token
         val skipToken = path.contains("auth/login") ||
                 path.contains("auth/forgot-password") ||
-                path.contains("auth/register")
+                path.contains("auth/reset-password")
 
         if (!token.isNullOrBlank() && !skipToken) {
-            // Seteamos la cabecera usando .header (que reemplaza) en lugar de .addHeader
+            // header() reemplaza cualquier cabecera previa del mismo nombre
             requestBuilder.header("Authorization", "Bearer $token")
-            Log.d("API_AUTH", "Token enviado a: $path")
+            Log.d("API_AUTH", "Enviando Token a: $path | Token: ${token.take(10)}...")
         } else {
-            Log.d("API_AUTH", "Petición sin token a: $path (Token vacío: ${token.isNullOrBlank()})")
+            Log.d("API_AUTH", "Petición sin token (Ruta excluida o token nulo) a: $path")
         }
 
         val response = try {
             chain.proceed(requestBuilder.build())
         } catch (e: Exception) {
-            // Si la conexión falla físicamente, lanzamos una excepción limpia
-            Log.e("API_AUTH", "Fallo físico de red: ${e.message}")
+            Log.e("API_AUTH", "Fallo de conexión: ${e.message}")
             throw e
         }
 
-        // Manejo de la respuesta del servidor
+        // Si el servidor responde 401, el token guardado ya no es válido
         if (response.code == 401) {
-            Log.e("API_AUTH", "ERROR 401: El servidor rechazó el token en $path. Bad Credentials.")
-            // Aquí es donde Spring Security en tu backend está fallando.
+            Log.e("API_AUTH", "Sesión inválida (401) en $path. Redirigir al login si es necesario.")
         }
 
         return response
