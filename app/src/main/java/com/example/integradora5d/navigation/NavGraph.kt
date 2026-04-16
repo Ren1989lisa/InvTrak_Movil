@@ -68,9 +68,14 @@ fun NavGraph() {
             else LaunchedEffect(Unit) { navController.popBackStack() }
         }
 
-        composable("historial") {
-            if (rol.uppercase() == "ADMIN") HistorialScreen(navController)
-            else LaunchedEffect(Unit) { navController.popBackStack() }
+        // Dentro de tu NavHost...
+        composable(
+            route = "historial/{etiqueta}",
+            arguments = listOf(navArgument("etiqueta") { type = NavType.StringType })
+        ) { backStackEntry ->
+            // Extraemos de forma segura
+            val etiqueta = backStackEntry.arguments?.getString("etiqueta") ?: "0"
+            HistorialScreen(navController = navController, etiquetaActivo = etiqueta)
         }
 
         composable("profile") { ProfileScreen(navController) }

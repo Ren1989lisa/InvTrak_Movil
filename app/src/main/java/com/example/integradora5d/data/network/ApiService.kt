@@ -52,5 +52,10 @@ interface ApiService {
         @Part archivos: List<MultipartBody.Part>? = null
     ): Response<Unit>
 
+    @GET("historial/activo/{activoId}")
+    suspend fun getHistorialByActivoId(@Path("activoId") activoId: Long): List<BeanHistorialResponse>
+
+
+
 
 }

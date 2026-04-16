@@ -14,24 +14,34 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import com.example.integradora5d.ui.components.DrawerSelector
+import com.example.integradora5d.viewmodel.HistorialViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HistorialScreen(navController: NavController) {
+fun HistorialScreen(navController: NavController, etiquetaActivo: String) {
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    // Obtenemos el ViewModel
+    val viewModel: HistorialViewModel = viewModel()
+
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf("Todo") }
-
     val opciones = listOf("Todo", "Mantenimiento", "Baja", "Asignación")
-    val nombreActivo = "Laptop HP ProBook 440 G8"
+
+    // Carga de datos segura al iniciar o cambiar etiqueta
+    LaunchedEffect(key1 = etiquetaActivo) {
+        viewModel.cargarHistorial(context, etiquetaActivo)
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -40,7 +50,7 @@ fun HistorialScreen(navController: NavController) {
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("Historial", color = Color.White, fontWeight = FontWeight.Bold) },
+                    title = { Text("Historial de Activo", color = Color.White, fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = null, tint = Color.White)
@@ -61,12 +71,12 @@ fun HistorialScreen(navController: NavController) {
             ) {
                 // BOTÓN DE REGRESO
                 IconButton(
-                    onClick = { navController.navigate("home") },
+                    onClick = { navController.popBackStack() },
                     modifier = Modifier
-                        .size(45.dp) // Tamaño cuadrado
+                        .size(45.dp)
                         .background(
-                            color = Color(0xFF0A4174), // Azul oscuro igual que el Nav
-                            shape = RoundedCornerShape(8.dp) // Esquinas poco redondeadas
+                            color = Color(0xFF0A4174),
+                            shape = RoundedCornerShape(8.dp)
                         )
                 ) {
                     Icon(
@@ -84,7 +94,7 @@ fun HistorialScreen(navController: NavController) {
                     OutlinedTextField(
                         value = "",
                         onValueChange = {},
-                        placeholder = { Text("Buscar...") },
+                        placeholder = { Text("Buscar movimiento...") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -111,27 +121,57 @@ fun HistorialScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // TIMELINE con activo interno
-                TimelineItem(
-                    activo = nombreActivo,
-                    titulo = "Cambio de Estatus",
-                    contenido = "De: En mantenimiento\nA: Disponible\nUsuario: Fernanda Rodríguez\nObservación: Equipo reparado",
-                    fecha = "07/02/2026"
-                )
+                // Lógica de visualización con manejo de nulos corregido
+                when {
+                    viewModel.cargando -> {
+                        Box(modifier = Modifier.fillMaxWidth().padding(top = 20.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = Color(0xFF0A4174))
+                        }
+                    }
 
-                TimelineItem(
-                    activo = nombreActivo,
-                    titulo = "Mantenimiento",
-                    contenido = "Tipo: Correctivo\nDiagnóstico: Falla en disco\nSe reemplazó por SSD Kingston 480GB",
-                    fecha = "06/02/2026"
-                )
+                    viewModel.mensajeError != null -> {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                            modifier = Modifier.fillMaxWidth().padding(8.dp)
+                        ) {
+                            Text(
+                                text = "Atención: ${viewModel.mensajeError!!}",
+                                color = Color.Red,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                    }
 
-                TimelineItem(
-                    activo = nombreActivo,
-                    titulo = "Asignación de Técnico",
-                    contenido = "Técnico: Carlos Ramírez\nSe asignó para mantenimiento",
-                    fecha = "06/02/2026"
-                )
+                    viewModel.listaHistorial.isEmpty() -> {
+                        Text(
+                            text = "Sin registros para el activo: $etiquetaActivo",
+                            color = Color.Gray,
+                            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 20.dp)
+                        )
+                    }
+
+                    else -> {
+                        viewModel.listaHistorial.forEachIndexed { index, historial ->
+                            val esUltimo = index == viewModel.listaHistorial.size - 1
+
+                            // CORRECCIÓN DEL CRASH (Type Mismatch):
+                            // Se usa safe call (?.) y operador elvis (?:) para asegurar que se pase un String
+                            val fechaMostrar = historial.fecha_cambio?.split("T")?.getOrNull(0)
+                                ?: "Sin fecha"
+
+                            TimelineItem(
+                                activo = "ID Activo: $etiquetaActivo",
+                                titulo = "Cambio: ${historial.estatus_nuevo ?: "Sin estado"}",
+                                contenido = "De: ${historial.estatus_anterior ?: "N/A"}\n" +
+                                        "Usuario: ${historial.usuario?.nombre_completo ?: "Sin nombre"}\n" +
+                                        "Observación: ${historial.motivo ?: "Ninguna"}",
+                                fecha = fechaMostrar, // Ahora es String no nulo
+                                mostrarLinea = !esUltimo
+                            )
+                        }
+                    }
+                }
             }
         }
     }
