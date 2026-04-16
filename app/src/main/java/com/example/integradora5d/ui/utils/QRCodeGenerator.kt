@@ -22,5 +22,6 @@ fun generarQR(texto: String): Bitmap {
             )
         }
     }
+
     return bitmap
 }

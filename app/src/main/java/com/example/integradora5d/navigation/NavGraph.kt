@@ -19,12 +19,8 @@ import com.example.integradora5d.viewmodel.BienRegistradoViewModel
 fun NavGraph() {
     val navController = rememberNavController()
     val context = LocalContext.current
-
-    // Unificamos el acceso a SharedPreferences
-    val prefs = remember { context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE) }
-    var rol by remember { mutableStateOf(prefs.getString("rol", "") ?: "") }
-
-    // El ViewModel se define aquí para que persista durante toda la navegación de bienes
+    
+    // El ViewModel se define aquí para que sea compartido entre la lista y el detalle
     val bienViewModel: BienRegistradoViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = "login") {
@@ -32,9 +28,7 @@ fun NavGraph() {
         composable("login") {
             LoginScreen(
                 onLoginSuccess = {
-                    val nuevoRol = prefs.getString("rol", "") ?: ""
-                    rol = nuevoRol
-                    navController.navigate("bienes") {
+                    navController.navigate("bienes_principal") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
@@ -42,39 +36,42 @@ fun NavGraph() {
             )
         }
 
-        composable("resetPassword") {
-            ResetPasswordScreen(
-                onBackToLogin = { navController.popBackStack() }
-            )
-        }
-
-        composable("bienes") {
+        composable("bienes_principal") {
+            val prefs = remember { context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE) }
+            val rol = prefs.getString("rol", "") ?: ""
             BienRegistradoScreen(
-                navController = navController, 
-                viewModel = bienViewModel, 
+                navController = navController,
+                viewModel = bienViewModel,
                 userRole = rol
             )
         }
 
+        // Definición de ruta para Long (idOriginal)
         composable(
             route = "bien_detalle/{bienId}",
             arguments = listOf(navArgument("bienId") { type = NavType.LongType })
         ) { backStackEntry ->
             val id = backStackEntry.arguments?.getLong("bienId") ?: 0L
             BienDetalleScreen(
-                navController = navController, 
-                bienId = id, 
+                navController = navController,
+                bienId = id,
                 viewModel = bienViewModel
             )
         }
 
-        composable("scanqr") { ScanQrScreen(navController) }
-
-        composable("reportinfo") {
-            if (rol.uppercase() == "ADMIN") ReportInfoScreen()
-            else LaunchedEffect(Unit) { navController.popBackStack() }
+        // Compatibilidad con rutas externas
+        composable("bienes") {
+            LaunchedEffect(Unit) {
+                navController.navigate("bienes_principal") {
+                    popUpTo("login") { inclusive = true }
+                }
+            }
         }
 
+        composable("scanqr") { ScanQrScreen(navController) }
+        composable("profile") { ProfileScreen(navController) }
+        composable("resetPassword") { ResetPasswordScreen(onBackToLogin = { navController.popBackStack() }) }
+        
         composable(
             route = "historial/{etiqueta}",
             arguments = listOf(navArgument("etiqueta") { 
@@ -86,23 +83,16 @@ fun NavGraph() {
             HistorialScreen(navController = navController, etiquetaActivo = etiqueta)
         }
 
-        composable("profile") { ProfileScreen(navController) }
-
         composable("edit_profile") {
-            // CORREGIDO: Usamos "idUsuario" que es la clave que usas en el Login
+            val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             val userId = prefs.getLong("idUsuario", 0L)
             EditProfileScreen(navController = navController, idUsuario = userId)
         }
 
         composable("crear_reporte") {
-            // CORREGIDO: Usamos "idUsuario" consistentemente
+            val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             val userId = prefs.getLong("idUsuario", 0L).toInt()
-            val rolActual = rol.uppercase()
-            if (rolActual == "USER" || rolActual == "USUARIO" || rolActual == "ADMIN") {
-                CrearReporte(navController = navController, usuarioId = userId)
-            } else {
-                LaunchedEffect(Unit) { navController.popBackStack() }
-            }
+            CrearReporte(navController = navController, usuarioId = userId)
         }
     }
 }

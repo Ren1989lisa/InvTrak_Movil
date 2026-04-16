@@ -19,9 +19,8 @@ class BienRegistradoViewModel : ViewModel() {
 
     fun cargarDatosSegunRol(context: Context, userRole: String) {
         val role = userRole.uppercase().trim()
-        Log.d("VIEWMODEL", "Cargando datos para el rol: $role")
 
-        // Evitamos recargar si ya hay datos, para no perder la selección al navegar
+        // Evitamos recargar si ya hay datos
         if (bienesRegistrados.isNotEmpty()) return
 
         if (role == "TECNICO") {
@@ -38,40 +37,37 @@ class BienRegistradoViewModel : ViewModel() {
                 val api = RetrofitClient.create(context)
                 val respuesta = api.getBienesReales()
 
-                if (respuesta.isNotEmpty()) {
-                    val listaMapeada = respuesta.map { producto ->
-                        BienRegistrado(
-                            idOriginal = producto.id_producto.toLong(),
-                            etiqueta = "ID: ${producto.id_producto}",
-                            tipo = "Activo",
-                            descripcion = producto.nombre ?: "Sin nombre",
-                            fechaAlta = "N/A",
-                            ubicacion = producto.descripcion ?: "Sin ubicación",
-                            costo = "$0.00",
-                            estado = producto.estatus ?: "DISPONIBLE"
-                        )
-                    }
-                    bienesRegistrados.clear()
-                    bienesRegistrados.addAll(listaMapeada)
+                val listaMapeada = respuesta.map { producto ->
+                    // MAPEO: Aquí conectamos los campos de Spring con los de tu UI
+                    BienRegistrado(
+                        idOriginal = producto.id_producto,
+                        etiqueta = "ID: ${producto.id_producto}",
+                        tipo = "Activo",
+                        descripcion = producto.nombre ?: "Sin nombre",
+                        fechaAlta = "N/A",
+                        ubicacion = producto.descripcion ?: "Sin ubicación",
+                        costo = "$0.00",
+                        estado = producto.estatus ?: "DISPONIBLE"
+                    )
                 }
+                bienesRegistrados.clear()
+                bienesRegistrados.addAll(listaMapeada)
             } catch (e: Exception) {
-                Log.e("API_ERROR", "Error en cargarBienes: ${e.message}")
+                Log.e("API_ERROR", "Error: ${e.message}")
             } finally {
                 estaCargando = false
             }
         }
     }
 
-    fun cargarUsuarios(context: Context) {
+    private fun cargarUsuarios(context: Context) {
         viewModelScope.launch {
             estaCargando = true
             try {
                 val api = RetrofitClient.create(context)
                 val usuarios = api.getTecnicos()
-
                 val listaMapeada = usuarios.map { user ->
                     BienRegistrado(
-                        // CORRECCIÓN: Usamos el ID real del usuario para que el detalle funcione
                         idOriginal = user.idUsuario ?: 0L,
                         etiqueta = user.nombre ?: "Usuario",
                         tipo = "Técnico",
@@ -85,7 +81,7 @@ class BienRegistradoViewModel : ViewModel() {
                 bienesRegistrados.clear()
                 bienesRegistrados.addAll(listaMapeada)
             } catch (e: Exception) {
-                Log.e("API_ERROR", "Error en cargarUsuarios: ${e.message}")
+                Log.e("API_ERROR", "Error: ${e.message}")
             } finally {
                 estaCargando = false
             }

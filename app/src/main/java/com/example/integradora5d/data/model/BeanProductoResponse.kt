@@ -6,5 +6,7 @@ data class BeanProductoResponse(
     @SerializedName("id_producto") val id_producto: Long,
     @SerializedName("nombre") val nombre: String?,
     @SerializedName("descripcion") val descripcion: String?,
-    @SerializedName("estatus") val estatus: String?
+    @SerializedName("estatus") val estatus: String?,
+    // Se añade un campo genérico para evitar errores de parseo si llega el objeto modelo
+    @SerializedName("modelo") val modelo: Any? = null
 )
