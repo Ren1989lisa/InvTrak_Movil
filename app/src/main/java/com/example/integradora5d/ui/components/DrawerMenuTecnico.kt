@@ -53,38 +53,6 @@ fun DrawerMenuTecnico(
         HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
         DrawerItem(
-            icon = Icons.Default.Home,
-            label = "Inicio",
-            selected = currentRoute == "home"
-        ) {
-            navController.navigate("bienes")
-        }
-
-        DrawerItem(
-            icon = Icons.Default.Inventory,
-            label = "Mis Bienes",
-            selected = currentRoute == "bienes"
-        ) {
-            navController.navigate("bienes")
-        }
-
-        /*DrawerItem(
-            icon = Icons.Default.People,
-            label = "Usuarios",
-            selected = currentRoute == "usuarios"
-        ) {
-            navController.navigate("usuarios")
-        }*/
-
-        DrawerItem(
-            icon = Icons.Default.QrCodeScanner,
-            label = "Escanear QR",
-            selected = currentRoute == "scanqr"
-        ) {
-            navController.navigate("scanqr")
-        }
-
-        DrawerItem(
             icon = Icons.Default.Build,
             label = "Mis Mantenimientos",
             selected = currentRoute == "mantenimientos"

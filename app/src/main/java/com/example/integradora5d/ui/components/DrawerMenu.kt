@@ -68,33 +68,9 @@ fun DrawerMenu(
         DrawerItem(
             icon = Icons.Default.Home,
             label = "Inicio",
-            selected = currentRoute == "home"
+            selected = currentRoute == "admin_home"
         ) {
-            navController.navigate("bienes")
-        }
-
-        DrawerItem(
-            icon = Icons.Default.Inventory,
-            label = "Mis Bienes",
-            selected = currentRoute == "bienes"
-        ) {
-            navController.navigate("bienes")
-        }
-
-        /*DrawerItem(
-            icon = Icons.Default.People,
-            label = "Usuarios",
-            selected = currentRoute == "usuarios"
-        ) {
-            navController.navigate("usuarios")
-        }*/
-
-        DrawerItem(
-            icon = Icons.Default.QrCodeScanner,
-            label = "Escanear QR",
-            selected = currentRoute == "scanqr"
-        ) {
-            navController.navigate("scanqr")
+            navController.navigate("admin_home")
         }
 
         DrawerItem(

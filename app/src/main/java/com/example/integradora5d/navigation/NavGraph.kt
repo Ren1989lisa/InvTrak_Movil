@@ -8,7 +8,9 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.integradora5d.ui.screen.*
 import com.example.integradora5d.ui.screen.bienes.*
+import com.example.integradora5d.ui.screen.checklist.ChecklistScreen
 import com.example.integradora5d.ui.screen.historial.HistorialScreen
+import com.example.integradora5d.ui.screen.home.*
 import com.example.integradora5d.ui.screen.login.*
 import com.example.integradora5d.ui.screen.mantenimiento.AtenderMantenimientoScreen
 import com.example.integradora5d.ui.screen.mantenimiento.MantenimientosScreen
@@ -43,16 +45,18 @@ fun NavGraph(startRoute: String? = null) {
                     rol = nuevoRol
                     if (primerAcceso) {
                         val destino = when (nuevoRol.uppercase()) {
-                            "TECNICO" -> "mantenimientos"
-                            else -> "bienes"
+                            "TECNICO" -> "tecnico_home"
+                            "ADMIN" -> "admin_home"
+                            else -> "resguardos"
                         }
                         navController.navigate("cambiar_contrasena/$destino") {
                             popUpTo("login") { inclusive = true }
                         }
                     } else {
                         val destino = when (nuevoRol.uppercase()) {
-                            "TECNICO" -> "mantenimientos"
-                            else -> "bienes"
+                            "TECNICO" -> "tecnico_home"
+                            "ADMIN" -> "admin_home"
+                            else -> "resguardos"
                         }
                         navController.navigate(destino) {
                             popUpTo("login") { inclusive = true }
@@ -71,8 +75,26 @@ fun NavGraph(startRoute: String? = null) {
             route = "cambiar_contrasena/{destino}",
             arguments = listOf(navArgument("destino") { type = NavType.StringType })
         ) { backStackEntry ->
-            val destino = backStackEntry.arguments?.getString("destino") ?: "bienes"
+            val destino = backStackEntry.arguments?.getString("destino") ?: "usuario_home"
             CambiarContrasenaScreen(navController = navController, destinoTrasExito = destino)
+        }
+
+        // Pantalla de redirección por rol
+        composable("home") {
+            HomeScreen(navController = navController)
+        }
+
+        // Pantallas de inicio por rol
+        composable("admin_home") {
+            AdminHomeScreen(navController = navController)
+        }
+
+        composable("tecnico_home") {
+            TecnicoHomeScreen(navController = navController)
+        }
+
+        composable("usuario_home") {
+            UsuarioHomeScreen(navController = navController)
         }
 
         composable("bienes") {
@@ -88,6 +110,34 @@ fun NavGraph(startRoute: String? = null) {
         }
 
         composable("scanqr") { ScanQrScreen(navController) }
+
+        // Pantalla de prueba QR (solo para debugging)
+        composable("qr_test") { QRTestScreen(navController) }
+
+        composable(
+            route = "checklist/{resguardoId}/{activoNombre}",
+            arguments = listOf(
+                navArgument("resguardoId") { type = NavType.LongType },
+                navArgument("activoNombre") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val resguardoId = backStackEntry.arguments?.getLong("resguardoId") ?: 0L
+            val activoNombreCodificado = backStackEntry.arguments?.getString("activoNombre") ?: "Activo"
+            val activoNombre = try {
+                java.net.URLDecoder.decode(activoNombreCodificado, "UTF-8")
+            } catch (e: Exception) {
+                "Activo"
+            }
+            ChecklistScreen(
+                navController = navController,
+                resguardoId = resguardoId,
+                activoNombre = activoNombre
+            )
+        }
+
+        composable("mis_bienes") {
+            MisBienesScreen(navController = navController)
+        }
 
         composable(
             route = "historial/{etiqueta}",

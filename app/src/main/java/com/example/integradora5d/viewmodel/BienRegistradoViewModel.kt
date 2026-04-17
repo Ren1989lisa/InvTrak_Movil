@@ -33,7 +33,44 @@ class BienRegistradoViewModel : ViewModel() {
             .map { it.aulaName }.filter { it.isNotBlank() }.distinct().sorted()
 
     fun cargarDatosSegunRol(context: Context, userRole: String) {
-        cargarMisActivos(context)
+        when (userRole.uppercase()) {
+            "ADMIN" -> cargarTodosLosActivos(context)
+            else -> cargarMisActivos(context)
+        }
+    }
+
+    fun cargarTodosLosActivos(context: Context) {
+        viewModelScope.launch {
+            estaCargando = true
+            try {
+                val api = RetrofitClient.create(context)
+                val respuesta = api.getActivos() // Obtener TODOS los activos
+
+                activosCompletos.clear()
+                activosCompletos.addAll(respuesta)
+
+                val listaMapeada = respuesta.map { activo ->
+                    BienRegistrado(
+                        idOriginal = activo.idActivo,
+                        etiqueta = activo.etiquetaBien ?: "Sin etiqueta",
+                        tipo = activo.productoNombre.ifBlank { "Activo" },
+                        descripcion = activo.descripcion ?: "Sin descripción",
+                        fechaAlta = activo.fechaAlta ?: "N/A",
+                        ubicacion = activo.ubicacionCompleta.ifBlank { "Sin ubicación" },
+                        costo = activo.costo?.let { "$${"%.2f".format(it)}" } ?: "N/A",
+                        estado = activo.estatus ?: "DISPONIBLE"
+                    )
+                }
+                bienesRegistrados.clear()
+                bienesRegistrados.addAll(listaMapeada)
+                
+                Log.d("BienVM", "Cargados ${bienesRegistrados.size} activos para admin")
+            } catch (e: Exception) {
+                Log.e("BienVM", "Error en cargarTodosLosActivos: ${e.message}")
+            } finally {
+                estaCargando = false
+            }
+        }
     }
 
     fun cargarMisActivos(context: Context) {

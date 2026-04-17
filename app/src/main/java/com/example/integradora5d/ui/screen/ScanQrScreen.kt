@@ -37,6 +37,7 @@ fun ScanQrScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val prefs = remember { context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE) }
     val rol = remember { prefs.getString("rol", "") ?: "" }
@@ -49,7 +50,9 @@ fun ScanQrScreen(
     LaunchedEffect(resultado) {
         when (val r = resultado) {
             is QrResultado.ResguardoPendiente -> {
-                navController.navigate("confirmar_resguardo/${r.resguardoId}")
+                // Codificar el nombre del activo para la URL
+                val nombreCodificado = java.net.URLEncoder.encode(r.activoNombre, "UTF-8")
+                navController.navigate("checklist/${r.resguardoId}/$nombreCodificado")
                 qrViewModel.resetScanner()
             }
             is QrResultado.MantenimientoAsignado -> {
@@ -57,16 +60,28 @@ fun ScanQrScreen(
                 qrViewModel.resetScanner()
             }
             is QrResultado.Error -> {
-                Toast.makeText(context, r.mensaje, Toast.LENGTH_LONG).show()
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = r.mensaje,
+                        duration = SnackbarDuration.Long
+                    )
+                }
                 qrViewModel.resetScanner()
             }
             null -> Unit
         }
     }
 
+    // Mostrar errores con Snackbar
     LaunchedEffect(errorMessage) {
-        errorMessage?.let {
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+        errorMessage?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    duration = SnackbarDuration.Long
+                )
+            }
+            qrViewModel.resetScanner()
         }
     }
 
@@ -76,7 +91,15 @@ fun ScanQrScreen(
     ) { result ->
         val codigo = result.contents
         if (codigo != null) {
+            println("QR Escaneado: $codigo") // Debug
             qrViewModel.procesarCodigoEscaneado(context, codigo, rol)
+        } else {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "No se pudo leer el código QR",
+                    duration = SnackbarDuration.Short
+                )
+            }
         }
     }
 
@@ -96,6 +119,16 @@ fun ScanQrScreen(
         drawerContent = { DrawerSelector(navController = navController, currentRoute = "scanqr") }
     ) {
         Scaffold(
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState) { data ->
+                    Snackbar(
+                        snackbarData = data,
+                        containerColor = Color(0xFFCA4C4C),
+                        contentColor = Color.White,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                }
+            },
             topBar = {
                 Box(
                     modifier = Modifier
@@ -147,10 +180,12 @@ fun ScanQrScreen(
                         isSearching -> "Verificando en servidor..."
                         rol.uppercase() == "TECNICO" ->
                             "Escanea el QR del activo\npara ver tu mantenimiento asignado"
+                        rol.uppercase() in listOf("USER", "USUARIO") ->
+                            "Escanea el QR del activo\npara confirmar tu resguardo"
                         else ->
-                            "Escanea el QR del activo\npara confirmar o gestionar tu resguardo"
+                            "Tu rol no tiene permisos\npara escanear códigos QR"
                     },
-                    color = Color(0xFF49769F),
+                    color = if (rol.uppercase() in listOf("USER", "USUARIO", "TECNICO")) Color(0xFF49769F) else Color(0xFFCA4C4C),
                     textAlign = TextAlign.Center,
                     lineHeight = 22.sp,
                     fontWeight = FontWeight.Medium,
@@ -165,13 +200,18 @@ fun ScanQrScreen(
                         modifier = Modifier.size(48.dp)
                     )
                 } else {
+                    val canScan = rol.uppercase() in listOf("USER", "USUARIO", "TECNICO")
                     Button(
-                        onClick = { lanzarScanner() },
+                        onClick = { if (canScan) lanzarScanner() },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0A4174))
+                        enabled = canScan,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (canScan) Color(0xFF0A4174) else Color.Gray,
+                            disabledContainerColor = Color.Gray
+                        )
                     ) {
                         Icon(
                             Icons.Default.QrCodeScanner,
@@ -180,7 +220,7 @@ fun ScanQrScreen(
                         )
                         Spacer(Modifier.width(10.dp))
                         Text(
-                            "Abrir escáner QR",
+                            if (canScan) "Abrir escáner QR" else "Sin permisos",
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )

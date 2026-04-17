@@ -64,6 +64,12 @@ interface ApiService {
     @GET("resguardo/verificar/{activoId}")
     suspend fun verificarResguardoQR(@Path("activoId") activoId: Long): ResguardoResponse
 
+    @GET("resguardo/validar/{qrCode}")
+    suspend fun validarResguardoQR(@Path("qrCode") qrCode: String): ResguardoResponse
+
+    @GET("usuarios/mis-bienes")
+    suspend fun getMisBienes(): List<ResguardoResponse>
+
     @POST("resguardo/{id}/solicitar-devolucion")
     suspend fun solicitarDevolucion(@Path("id") id: Long): Response<ResguardoResponse>
 

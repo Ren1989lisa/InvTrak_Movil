@@ -87,35 +87,32 @@ fun DrawerMenuUsuario(
                 color = Color(0xFFE2E8F0)
             )
 
-            // --- INICIO / BIENES ---
-            NavigationDrawerItem(
-                icon = { Icon(Icons.Default.GridView, contentDescription = null) },
-                label = { Text("Inicio", fontWeight = FontWeight.Medium) },
-                selected = currentRoute == "bienes",
-                onClick = {
-                    navController.navigate("bienes") {
-                        popUpTo("bienes") { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
-                colors = NavigationDrawerItemDefaults.colors(
-                    selectedContainerColor = Color(0xFFC6E2F3),
-                    selectedIconColor = Color(0xFF0A4174),
-                    selectedTextColor = Color(0xFF0A4174),
-                    unselectedIconColor = Color(0xFF0A4174),
-                    unselectedTextColor = Color(0xFF0A4174)
-                )
-            )
-
             // --- MIS RESGUARDOS ---
             NavigationDrawerItem(
-                icon = { Icon(Icons.Outlined.WarningAmber, contentDescription = null) },
+                icon = { Icon(Icons.Outlined.Assignment, contentDescription = null) },
                 label = { Text("Mis Resguardos", fontWeight = FontWeight.Medium) },
                 selected = currentRoute == "resguardos",
                 onClick = {
                     navController.navigate("resguardos") { launchSingleTop = true }
                 },
                 colors = NavigationDrawerItemDefaults.colors(
+                    unselectedIconColor = Color(0xFF0A4174),
+                    unselectedTextColor = Color(0xFF0A4174)
+                )
+            )
+
+            // --- MIS BIENES ---
+            NavigationDrawerItem(
+                icon = { Icon(Icons.Default.Inventory, contentDescription = null) },
+                label = { Text("Mis Bienes", fontWeight = FontWeight.Medium) },
+                selected = currentRoute == "mis_bienes",
+                onClick = {
+                    navController.navigate("mis_bienes") { launchSingleTop = true }
+                },
+                colors = NavigationDrawerItemDefaults.colors(
+                    selectedContainerColor = Color(0xFFC6E2F3),
+                    selectedIconColor = Color(0xFF0A4174),
+                    selectedTextColor = Color(0xFF0A4174),
                     unselectedIconColor = Color(0xFF0A4174),
                     unselectedTextColor = Color(0xFF0A4174)
                 )
@@ -134,6 +131,20 @@ fun DrawerMenuUsuario(
                 colors = NavigationDrawerItemDefaults.colors(
                     unselectedIconColor = Color(0xFF0A4174),
                     unselectedTextColor = Color(0xFF0A4174)
+                )
+            )
+
+            // --- TEST QR (TEMPORAL) ---
+            NavigationDrawerItem(
+                icon = { Icon(Icons.Default.BugReport, contentDescription = null) },
+                label = { Text("Test QR", fontWeight = FontWeight.Medium) },
+                selected = currentRoute == "qr_test",
+                onClick = {
+                    navController.navigate("qr_test") { launchSingleTop = true }
+                },
+                colors = NavigationDrawerItemDefaults.colors(
+                    unselectedIconColor = Color(0xFFFF6B35),
+                    unselectedTextColor = Color(0xFFFF6B35)
                 )
             )
 
