@@ -23,6 +23,9 @@ interface ApiService {
     @GET("activo")
     suspend fun getActivos(): List<ActivoCompleto>
 
+    @GET("activo/mis-activos")
+    suspend fun getMisActivos(): List<ActivoCompleto>
+
     @GET("usuario/{id}")
     suspend fun getPerfilUsuario(@Path("id") id: Long): PerfilResponse
 

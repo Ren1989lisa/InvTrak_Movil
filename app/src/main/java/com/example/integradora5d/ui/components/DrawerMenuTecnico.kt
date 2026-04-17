@@ -48,21 +48,6 @@ fun DrawerMenuTecnico(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 8.dp)
             )
-
-            Button(
-                onClick = {
-                    navController.navigate("profile")
-                },
-                modifier = Modifier.padding(top = 8.dp).height(36.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF7BBDE8),
-                    contentColor = Color(0xFF0A4174)
-                ),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 0.dp)
-            ) {
-                Text("Ver perfil", fontWeight = FontWeight.Medium)
-            }
         }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))

@@ -35,6 +35,8 @@ fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = vie
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val bienesResguardados by viewModel.bienesResguardados.collectAsState()
+    val prefs = remember { context.getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE) }
+    val esAdmin = remember { (prefs.getString("rol", "") ?: "").uppercase() == "ADMIN" }
 
     LaunchedEffect(Unit) { viewModel.cargarDatosUsuario(context) }
 
@@ -200,16 +202,18 @@ fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = vie
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Button(
-                    onClick = { navController.navigate("edit_profile") },
-                    modifier = Modifier
-                        .fillMaxWidth(0.8f)
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7CB9E8)),
-                    shape = RoundedCornerShape(10.dp),
-                    enabled = !viewModel.estaCargando
-                ) {
-                    Text("Editar Perfil", color = Color.White, fontWeight = FontWeight.Bold)
+                if (esAdmin) {
+                    Button(
+                        onClick = { navController.navigate("edit_profile") },
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7CB9E8)),
+                        shape = RoundedCornerShape(10.dp),
+                        enabled = !viewModel.estaCargando
+                    ) {
+                        Text("Editar Perfil", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
