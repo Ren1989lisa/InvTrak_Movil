@@ -250,6 +250,12 @@ fun BienDetalleScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            DownloadButton("Ver historial") {
+                navController.navigate("historial/${bien.idOriginal}")
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             DownloadButton("Descargar en JPG") {
                 val bitmap = capturarVista(view)
                 guardarImagen(context, bitmap, "Bien_${bien.idOriginal}")

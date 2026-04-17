@@ -32,8 +32,8 @@ interface ApiService {
     @GET("prioridad")
     suspend fun getPrioridades(): List<PrioridadResponse>
 
-    @GET("historial/{etiqueta}")
-    suspend fun getHistorialByEtiqueta(@Path("etiqueta") etiqueta: String): List<BienRegistrado>
+    @GET("historial")
+    suspend fun getHistorial(): List<BeanHistorialResponse>
 
     @POST("auth/forgot-password")
     suspend fun solicitarRecuperacion(@Body request: ForgotPasswordRequest): Response<Unit>

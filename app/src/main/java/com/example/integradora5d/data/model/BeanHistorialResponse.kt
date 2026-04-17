@@ -3,16 +3,33 @@ package com.example.integradora5d.data.model
 import com.google.gson.annotations.SerializedName
 
 data class BeanHistorialResponse(
-    val id_historial: Long,
-    val estatus_anterior: String?,
-    val estatus_nuevo: String?,
+    @SerializedName("id_historial")
+    val idHistorial: Long,
+    @SerializedName("estatus_anterior")
+    val estatusAnterior: String?,
+    @SerializedName("estatus_nuevo")
+    val estatusNuevo: String?,
+    @SerializedName("fecha_cambio")
+    val fechaCambio: String?,
     val motivo: String?,
-    // CORREGIDO: fecha_cambio puede fallar en el parseo si el formato de LocalDateTime cambia
-    val fecha_cambio: String?,
-    val usuario: UsuarioSimple?
+    val activo: HistorialActivo?,
+    val usuario: HistorialUsuario?
 )
 
-data class UsuarioSimple(
-    @SerializedName("nombre")
-    val nombre_completo: String?
+data class HistorialActivo(
+    @SerializedName("idActivo")
+    val idActivo: Long,
+    @SerializedName("etiquetaBien")
+    val etiquetaBien: String?,
+    @SerializedName("numeroSerie")
+    val numeroSerie: String?,
+    val descripcion: String?,
+    val estatus: String?
+)
+
+data class HistorialUsuario(
+    @SerializedName("idUsuario")
+    val idUsuario: Long,
+    val nombre: String?,
+    val correo: String?
 )

@@ -17,40 +17,35 @@ class HistorialViewModel : ViewModel() {
     var cargando by mutableStateOf(false)
     var mensajeError by mutableStateOf<String?>(null)
 
-    fun cargarHistorial(context: Context, etiqueta: String) {
-        if (etiqueta == "todos") {
-            mensajeError = "Selecciona un activo específico desde la lista de bienes para ver su historial."
-            cargando = false
-            return
-        }
-
-        val idL = etiqueta.filter { it.isDigit() }.toLongOrNull()
-
-        if (idL == null) {
-            mensajeError = "ID de activo no válido"
-            return
-        }
-
+    fun cargarHistorial(context: Context, activoRef: String) {
         viewModelScope.launch {
             cargando = true
             mensajeError = null
             try {
                 val api = RetrofitClient.create(context)
-                val response = api.getHistorialByActivoId(idL)
-                listaHistorial = response
-                Log.d("API_DEBUG", "Éxito al cargar historial")
+                listaHistorial = if (activoRef == "todos") {
+                    api.getHistorial()
+                } else {
+                    val activoId = activoRef.toLongOrNull()
+                        ?: throw IllegalArgumentException("ID de activo no valido")
+                    api.getHistorialByActivoId(activoId)
+                }
+                Log.d("API_DEBUG", "Historial cargado correctamente")
+            } catch (e: IllegalArgumentException) {
+                listaHistorial = emptyList()
+                mensajeError = e.message
             } catch (e: HttpException) {
-                // ESTO EVITA EL CRASH: Atrapamos el error del servidor (401, 403, etc)
+                listaHistorial = emptyList()
                 mensajeError = if (e.code() == 401) {
-                    "Tu sesión ha expirado o no tienes permisos."
+                    "Tu sesion ha expirado o no tienes permisos."
                 } else {
                     "Error del servidor: ${e.code()}"
                 }
                 Log.e("API_DEBUG", "Error HTTP controlado: ${e.message()}")
             } catch (e: Exception) {
-                // Atrapamos errores de internet o de código
+                listaHistorial = emptyList()
                 mensajeError = "No se pudo conectar con el servidor"
-                Log.e("API_DEBUG", "Crash evitado: ${e.localizedMessage}")
+                Log.e("API_DEBUG", "Error al cargar historial: ${e.localizedMessage}")
             } finally {
                 cargando = false
             }
