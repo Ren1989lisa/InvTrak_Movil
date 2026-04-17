@@ -2,12 +2,15 @@ package com.example.integradora5d.ui.screen.perfil
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.integradora5d.ui.components.DrawerSelector
@@ -30,11 +34,9 @@ fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = vie
     val context = LocalContext.current
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val bienesResguardados by viewModel.bienesResguardados.collectAsState()
 
-    // Llama a la carga de datos al iniciar la pantalla
-    LaunchedEffect(Unit) {
-        viewModel.cargarDatosUsuario(context)
-    }
+    LaunchedEffect(Unit) { viewModel.cargarDatosUsuario(context) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -130,6 +132,69 @@ fun ProfileScreen(navController: NavController, viewModel: PerfilViewModel = vie
                         ProfileInfoItem("Rol", viewModel.rol)
                         ProfileInfoItem("Número de empleado", viewModel.numeroEmpleado)
                         ProfileInfoItem("Área/Departamento", viewModel.area)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Bienes resguardados
+                Text(
+                    "Mis bienes resguardados",
+                    color = Color(0xFF1A4670),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                if (bienesResguardados.isEmpty() && !viewModel.estaCargando) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F7FF))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Inventory2, null, tint = Color(0xFFB0C4D8), modifier = Modifier.size(28.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Text("Sin bienes resguardados actualmente", color = Color(0xFF8AAABB), fontSize = 14.sp)
+                        }
+                    }
+                } else {
+                    bienesResguardados.forEach { resguardo ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFEBF5F9))
+                        ) {
+                            Column(modifier = Modifier.padding(14.dp)) {
+                                Text(
+                                    resguardo.activo?.etiquetaBien ?: "Sin etiqueta",
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1A4670),
+                                    fontSize = 14.sp
+                                )
+                                Text(
+                                    resguardo.activo?.producto?.nombre ?: "Sin producto",
+                                    color = Color(0xFF5A7A9A),
+                                    fontSize = 13.sp
+                                )
+                                resguardo.activo?.aula?.let {
+                                    Text(
+                                        "Ubicación: ${it.nombre ?: "N/A"}",
+                                        color = Color(0xFF8AAABB),
+                                        fontSize = 12.sp
+                                    )
+                                }
+                                Text(
+                                    "Asignado: ${resguardo.fechaAsignacion ?: "N/A"}",
+                                    color = Color(0xFF8AAABB),
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
                     }
                 }
 

@@ -73,29 +73,36 @@ fun DrawerMenu(
             navController.navigate("bienes")
         }
 
-        /*DrawerItem(
+        DrawerItem(
             icon = Icons.Default.Inventory,
             label = "Mis Bienes",
             selected = currentRoute == "bienes"
         ) {
             navController.navigate("bienes")
-        }*/
+        }
 
         /*DrawerItem(
+            icon = Icons.Default.People,
+            label = "Usuarios",
+            selected = currentRoute == "usuarios"
+        ) {
+            navController.navigate("usuarios")
+        }*/
+
+        DrawerItem(
             icon = Icons.Default.QrCodeScanner,
             label = "Escanear QR",
             selected = currentRoute == "scanqr"
         ) {
             navController.navigate("scanqr")
-        }*/
+        }
 
         DrawerItem(
             icon = Icons.Default.History,
             label = "Historial",
             selected = currentRoute == "historial"
         ) {
-            // CORRECCIÓN: Se añade "/0" para que la ruta sea válida y no cierre la app
-            navController.navigate("historial/0")
+            navController.navigate("historial/todos")
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -120,5 +127,3 @@ fun DrawerMenu(
         }
     }
 }
-
-// Nota: Asegúrate de tener el composable DrawerItem definido abajo o en otro archivo.

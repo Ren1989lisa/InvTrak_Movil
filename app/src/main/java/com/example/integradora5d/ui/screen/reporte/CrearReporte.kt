@@ -50,15 +50,20 @@ fun CrearReporte(
 
     // --- ESTADOS DE LA UI ---
     var etiqueta by remember { mutableStateOf("") }
+    var activoId by remember { mutableStateOf<Long?>(null) }
     var descripcion by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
-    var estatus by remember { mutableStateOf("Seleccione el estatus") }
     var showSuccess by remember { mutableStateOf(false) }
     var showImageOptions by remember { mutableStateOf(false) }
+    var showBienSelector by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
-
-    val opciones = listOf("Activo", "En mantenimiento", "Dañado")
+    val selectorSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val imagenes = remember { mutableStateListOf<Uri>() }
+
+    // Cargar resguardos del usuario para el selector
+    val resguardoVM: com.example.integradora5d.viewmodel.ResguardoViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val resguardos by resguardoVM.resguardos.collectAsState()
+    LaunchedEffect(Unit) { resguardoVM.cargarResguardos(context) }
+    val bienesResguardados = resguardos.filter { it.confirmado }
 
     // --- CONFIGURACIÓN DE CAPTURA DE IMAGEN ---
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -103,6 +108,42 @@ fun CrearReporte(
         viewModel.mensajeError?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
             viewModel.limpiarError()
+        }
+    }
+
+    if (showBienSelector) {
+        ModalBottomSheet(
+            onDismissRequest = { showBienSelector = false },
+            sheetState = selectorSheetState,
+            containerColor = Color.White
+        ) {
+            Column(modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)) {
+                Text(
+                    "Selecciona el bien a reportar",
+                    modifier = Modifier.padding(16.dp),
+                    fontWeight = FontWeight.Bold,
+                    color = azulOscuroBarra
+                )
+                if (bienesResguardados.isEmpty()) {
+                    Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        Text("No tienes bienes resguardados", color = Color.Gray)
+                    }
+                } else {
+                    bienesResguardados.forEach { resguardo ->
+                        ListItem(
+                            headlineContent = { Text(resguardo.activo?.etiquetaBien ?: "Sin etiqueta", fontWeight = FontWeight.Medium) },
+                            supportingContent = { Text(resguardo.activo?.producto?.nombre ?: "", color = Color.Gray, fontSize = 12.sp) },
+                            leadingContent = { Icon(Icons.Outlined.Label, null, tint = azulIconoSubir) },
+                            modifier = Modifier.clickable {
+                                etiqueta = resguardo.activo?.etiquetaBien ?: ""
+                                activoId = resguardo.activo?.idActivo
+                                showBienSelector = false
+                            }
+                        )
+                        HorizontalDivider()
+                    }
+                }
+            }
         }
     }
 
@@ -169,7 +210,12 @@ fun CrearReporte(
                                 Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.CheckCircle, null, tint = Color.White, modifier = Modifier.size(18.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Reporte Creado\nCorrectamente", color = Color.White, fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.Bold)
+                                    Column {
+                                        Text("Reporte Creado", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        viewModel.folioReporte?.let {
+                                            Text("Folio: #$it", color = Color.White, fontSize = 11.sp)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -183,29 +229,30 @@ fun CrearReporte(
                         colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Etiqueta del bien", color = azulTextoLabel, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text("Bien a reportar", color = azulTextoLabel, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             Spacer(modifier = Modifier.height(8.dp))
-                            OutlinedTextField(
-                                value = etiqueta,
-                                onValueChange = { etiqueta = it },
-                                placeholder = { Text("Ingrese la etiqueta del bien", color = Color.Gray.copy(0.6f)) },
-                                leadingIcon = { Icon(Icons.Outlined.Label, null, tint = azulIconoSubir) },
-                                modifier = Modifier.fillMaxWidth(),
+                            // Selector de bien resguardado
+                            Surface(
+                                modifier = Modifier.fillMaxWidth().clickable { showBienSelector = true },
                                 shape = RoundedCornerShape(12.dp),
-                                colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = azulBordeInput, focusedBorderColor = azulIconoSubir)
-                            )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Text("Estatus del Producto", color = azulTextoLabel, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Box(modifier = Modifier.fillMaxWidth().border(1.dp, azulBordeInput, RoundedCornerShape(12.dp)).clickable { expanded = true }.padding(16.dp)) {
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(estatus, color = if (estatus.contains("Seleccione")) Color.Gray.copy(0.6f) else azulTextoLabel)
+                                border = androidx.compose.foundation.BorderStroke(1.dp, if (activoId != null) azulIconoSubir else azulBordeInput),
+                                color = Color.White
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Outlined.Label, null, tint = azulIconoSubir, modifier = Modifier.size(20.dp))
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            if (etiqueta.isBlank()) "Selecciona un bien resguardado" else etiqueta,
+                                            color = if (etiqueta.isBlank()) Color.Gray.copy(0.6f) else azulTextoLabel,
+                                            fontSize = 14.sp
+                                        )
+                                    }
                                     Icon(Icons.Default.KeyboardArrowDown, null, tint = azulIconoSubir)
-                                }
-                                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                                    opciones.forEach { item -> DropdownMenuItem(text = { Text(item) }, onClick = { estatus = item; expanded = false }) }
                                 }
                             }
 
@@ -224,7 +271,7 @@ fun CrearReporte(
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            Text("Subir Imagenes o videos", color = azulTextoLabel, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text("Subir Imagenes", color = azulTextoLabel, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Box(
@@ -233,7 +280,10 @@ fun CrearReporte(
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Icon(Icons.Outlined.CloudUpload, null, tint = azulIconoSubir, modifier = Modifier.size(48.dp))
-                                    Text("Toca para seleccionar una imagen", color = azulIconoSubir, fontSize = 14.sp)
+                                    Text(
+                                        if (imagenes.isEmpty()) "Toca para seleccionar una imagen" else "${imagenes.size} imagen(es) seleccionada(s)",
+                                        color = azulIconoSubir, fontSize = 14.sp
+                                    )
                                 }
                             }
 
@@ -269,13 +319,11 @@ fun CrearReporte(
 
                         Button(
                             onClick = {
-                                // Validación local antes de llamar al ViewModel
-                                if (etiqueta.isNotBlank() && descripcion.isNotBlank()) {
+                                if (activoId != null && descripcion.isNotBlank() && imagenes.isNotEmpty()) {
                                     viewModel.enviarReporte(
                                         context = context,
-                                        etiqueta = etiqueta,
+                                        activoId = activoId!!,
                                         descripcion = descripcion,
-                                        estatus = estatus,
                                         imagenes = imagenes.toList()
                                     ) {
                                         scope.launch {
@@ -286,7 +334,12 @@ fun CrearReporte(
                                         }
                                     }
                                 } else {
-                                    Toast.makeText(context, "Por favor, completa los campos obligatorios", Toast.LENGTH_SHORT).show()
+                                    val msg = when {
+                                        activoId == null -> "Selecciona el bien a reportar"
+                                        descripcion.isBlank() -> "La descripción del problema es obligatoria"
+                                        else -> "Debes adjuntar al menos una foto"
+                                    }
+                                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                                 }
                             },
                             modifier = Modifier.weight(1f).height(50.dp),

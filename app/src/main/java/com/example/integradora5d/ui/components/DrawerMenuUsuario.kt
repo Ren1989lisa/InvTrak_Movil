@@ -107,15 +107,13 @@ fun DrawerMenuUsuario(
                 )
             )
 
-            // --- ESCANEAR QR ---
+            // --- MIS RESGUARDOS ---
             NavigationDrawerItem(
-                icon = { Icon(Icons.Outlined.PhotoCamera, contentDescription = null) },
-                label = { Text("Escanear QR", fontWeight = FontWeight.Medium) },
-                selected = currentRoute == "scanqr",
+                icon = { Icon(Icons.Outlined.WarningAmber, contentDescription = null) },
+                label = { Text("Mis Resguardos", fontWeight = FontWeight.Medium) },
+                selected = currentRoute == "resguardos",
                 onClick = {
-                    navController.navigate("scanqr") {
-                        launchSingleTop = true
-                    }
+                    navController.navigate("resguardos") { launchSingleTop = true }
                 },
                 colors = NavigationDrawerItemDefaults.colors(
                     unselectedIconColor = Color(0xFF0A4174),

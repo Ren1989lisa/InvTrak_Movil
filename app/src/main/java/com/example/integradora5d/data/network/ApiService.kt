@@ -17,9 +17,11 @@ interface ApiService {
     @GET("bienes/{etiqueta}")
     suspend fun getBienByEtiqueta(@Path("etiqueta") etiqueta: String): BienRegistrado
 
-
     @GET("producto")
     suspend fun getBienesReales(): List<BeanProductoResponse>
+
+    @GET("activo")
+    suspend fun getActivos(): List<ActivoCompleto>
 
     @GET("usuario/{id}")
     suspend fun getPerfilUsuario(@Path("id") id: Long): PerfilResponse
@@ -31,31 +33,62 @@ interface ApiService {
     suspend fun getHistorialByEtiqueta(@Path("etiqueta") etiqueta: String): List<BienRegistrado>
 
     @POST("auth/forgot-password")
-    suspend fun solicitarRecuperacion(@Body body: Map<String, String>): Response<Map<String, String>>
+    suspend fun solicitarRecuperacion(@Body request: ForgotPasswordRequest): Response<Unit>
 
-    // actualiza la informacion del perfil del usaurio
     @PUT("usuario/{id}")
     suspend fun actualizarPerfil(
         @Path("id") id: Long,
         @Body datos: UpdateUsuarioRequest
     ): Response<Unit>
 
-    @POST("auth/forgot-password")
-    suspend fun solicitarRecuperacion(@Body request: ForgotPasswordRequest): Response<Unit>
-// Cambiamos Map por ForgotPasswordRequest y Response<Unit> porque Spring devuelve un String o Void
-
-    // crear reporte
     @Multipart
     @POST("reporte")
     suspend fun crearReporte(
         @Part("datos") datos: RequestBody,
         @Part archivos: List<MultipartBody.Part>? = null
-    ): Response<Unit>
+    ): Response<ReporteCreado>
 
     @GET("historial/activo/{activoId}")
     suspend fun getHistorialByActivoId(@Path("activoId") activoId: Long): List<BeanHistorialResponse>
 
+    // --- RESGUARDO ---
+    @GET("resguardo")
+    suspend fun getResguardos(): List<ResguardoResponse>
 
+    @GET("resguardo/verificar/{activoId}")
+    suspend fun verificarResguardoQR(@Path("activoId") activoId: Long): ResguardoResponse
 
+    @POST("resguardo/{id}/solicitar-devolucion")
+    suspend fun solicitarDevolucion(@Path("id") id: Long): Response<ResguardoResponse>
 
+    @Multipart
+    @POST("resguardo/confirmar")
+    suspend fun confirmarResguardo(
+        @Part("datos") datos: RequestBody,
+        @Part fotos: List<MultipartBody.Part>? = null
+    ): Response<ResguardoResponse>
+
+    @Multipart
+    @POST("resguardo/devolver")
+    suspend fun devolverResguardo(
+        @Part("datos") datos: RequestBody,
+        @Part fotos: List<MultipartBody.Part>
+    ): Response<ResguardoResponse>
+
+    // --- MANTENIMIENTO (TÉCNICO) ---
+    @GET("mantenimiento/tecnico/{tecnicoId}")
+    suspend fun getMantenimientosByTecnico(@Path("tecnicoId") tecnicoId: Long): List<MantenimientoResponse>
+
+    @GET("mantenimiento/{id}")
+    suspend fun getMantenimientoById(@Path("id") id: Long): MantenimientoResponse
+
+    @Multipart
+    @PUT("mantenimiento/atender")
+    suspend fun atenderMantenimiento(
+        @Part("datos") datos: RequestBody,
+        @Part fotos: List<MultipartBody.Part>? = null
+    ): Response<MantenimientoResponse>
+
+    @PUT("mantenimiento/cerrar")
+    suspend fun cerrarMantenimiento(@Body body: Map<String, Any>): Response<MantenimientoResponse>
 }

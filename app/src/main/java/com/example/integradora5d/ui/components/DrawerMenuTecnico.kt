@@ -99,6 +99,14 @@ fun DrawerMenuTecnico(
             navController.navigate("scanqr")
         }
 
+        DrawerItem(
+            icon = Icons.Default.Build,
+            label = "Mis Mantenimientos",
+            selected = currentRoute == "mantenimientos"
+        ) {
+            navController.navigate("mantenimientos")
+        }
+
 
         Spacer(modifier = Modifier.weight(1f))
 

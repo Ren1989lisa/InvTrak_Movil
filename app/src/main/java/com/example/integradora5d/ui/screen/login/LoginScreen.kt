@@ -162,7 +162,7 @@ fun LoginScreen(
                     if (loginExitoso == false) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "Credenciales incorrectas o error de conexión",
+                            viewModel.mensajeError,
                             color = Color.Red,
                             fontSize = 12.sp,
                             modifier = Modifier.align(Alignment.CenterHorizontally)

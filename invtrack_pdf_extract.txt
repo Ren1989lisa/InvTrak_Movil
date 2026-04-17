@@ -1,0 +1,1194 @@
+PAGES 29
+
+===== PAGE 1 =====
+
+ 
+  
+  
+     
+Sistema  de  Inventario,  Resguardos  y  Mantenimiento  de  Activos  con  QR   Equipo:  
+Renata  Ortiz  Chavez  
+Manuel  Alejandro  Rios  García  
+Roberto  Carlos  Espinoza  Jimenez  
+Dana
+ 
+Bahena
+ 
+Díaz
+ 
+ 
+ 
+  
+  
+ 
+ 
+  
+ 
+
+
+===== PAGE 2 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ No  está  permitida  la  reproducción  total  o  parcial,  ni  su  tratamiento  o  transmisión  por  cualquier  método  o  medio  electrónico  sin  autorización  escrita  de  la  Universidad  Tecnológica  Emiliano  Zapata  del  Estado  de  
+Morelos
+ 
+(UTEZ).
+ 
+  
+ 
+ InvTrack   1   
+
+===== PAGE 3 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ Datos  del  Proyecto Introducción Fuentes  de  Información Personal Otras Glosario Requerimientos  Funcionales Requisito  (Rol) Requerimientos  de  Interfaz  con  usuario Requerimientos  de  Confiabilidad Requerimientos  de  Eficiencia Requerimientos  de  Mantenimiento Requerimientos  de   Portabilidad Requerimientos  de  Interoperatividad Requerimientos  de  Reusabilidad Restricciones   de  diseño  y  construcción Aspectos  legales  y   reglamentarios Requerimientos  de  Usabilidad Escenarios  de  Operación Control  de  Cambios  
+  
+ InvTrack   2   
+
+===== PAGE 4 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+Datos  del  Proyecto  
+ Identificador:  001-P&L”  
+Nombre  del  proyecto:  InvTrack  
+Nombre  del  cliente:  CRISTIAN  ALEXIS  CAMPOS  ROMAN  
+ 
+Introducción  
+InvTrack  es  una  plataforma  integral  diseñada  para  digitalizar  y  optimizar  la  gestión  de  activos  
+tecnológicos
+ 
+mediante
+ 
+una
+ 
+arquitectura
+ 
+híbrida
+ 
+que
+ 
+combina
+ 
+una
+ 
+aplicación
+ 
+Web
+ 
+para
+ 
+la
+ 
+administración
+ 
+centralizada
+ 
+y
+ 
+una
+ 
+aplicación
+ 
+Móvil
+ 
+para
+ 
+tareas
+ 
+operativas
+ 
+.
+ 
+El  proyecto  permite  el  control  preciso  de  inventarios,  la  asignación  formal  de  resguardos  a  
+empleados
+ 
+y
+ 
+el
+ 
+seguimiento
+ 
+detallado
+ 
+de
+ 
+mantenimientos
+ 
+preventivos
+ 
+y
+ 
+correctivos.
+ 
+El  sistema  contempla  módulos  para:  
+●   Autenticación  y  Usuarios:  Controla  el  inicio  de  sesión  por  correo  y  contraseña  ,  la  
+recuperación
+ 
+de
+ 
+contraseñas
+ 
+y
+ 
+el
+ 
+registro
+ 
+de
+ 
+nuevos
+ 
+usuarios
+ 
+por
+ 
+parte
+ 
+del
+ 
+administrador.
+ 
+●  Catálogos  :  Gestión  de  los  tipos  de  activos,  ubicaciones  físicas  y  las  prioridades  de  
+mantenimiento.
+ 
+●  Gestión  de  Activos  :  Permite  el  registro  individual  de  activos  con  su  número  de  serie  y  
+estatus
+ 
+,
+ 
+la
+ 
+generación
+ 
+automática
+ 
+de
+ 
+códigos
+ 
+QR
+ 
+y
+ 
+la
+ 
+importación
+ 
+masiva
+ 
+de
+ 
+datos
+ 
+desde
+ 
+archivos
+ 
+Excel.
+ 
+●  Resguardos:  Incluye  la  asignación  de  activos  a  empleados  desde  la  web  y  la  
+confirmación
+ 
+o
+ 
+devolución
+ 
+de
+ 
+los
+ 
+mismos
+ 
+desde
+ 
+la
+ 
+app
+ 
+móvil
+ 
+mediante
+ 
+el
+ 
+escaneo
+ 
+de
+ 
+QR
+ 
+y
+ 
+toma
+ 
+de
+ 
+fotos.
+ 
+●  Reportes  de  Daño:  Permite  a  los  empleados  crear  reportes  de  falla  escaneando  el  QR  
+del
+ 
+activo
+ 
+y
+ 
+adjuntando
+ 
+fotos
+ 
+o
+ 
+video
+ 
+del
+ 
+daño.
+ 
+ InvTrack   3   
+
+===== PAGE 5 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ ●  Mantenimientos:  Gestión  de  la  asignación  de  técnicos  para  mantenimientos  correctivos  
+o
+ 
+preventivos
+ 
+y
+ 
+el
+ 
+registro
+ 
+del
+ 
+diagnóstico,
+ 
+piezas
+ 
+utilizadas
+ 
+y
+ 
+evidencias
+ 
+de
+ 
+la
+ 
+reparación.
+ 
+●  Bitácora  /  Historial:  Proporciona  un  registro  detallado  por  cada  activo,  mostrando  su  
+historial
+ 
+de
+ 
+resguardos,
+ 
+reportes
+ 
+de
+ 
+daño,
+ 
+mantenimientos
+ 
+y
+ 
+cambios
+ 
+de
+ 
+estatus.
+ 
+●  Dashboard  :  Un  panel  visual  con  indicadores  clave  como  el  total  de  activos,  activos  por  
+estatus,
+ 
+los
+ 
+más
+ 
+reportados
+ 
+y
+ 
+métricas
+ 
+de
+ 
+desempeño
+ 
+de
+ 
+los
+ 
+técnicos.
+ 
+Este  documento  establece  el  alcance  del  sistema,  los  requerimientos  funcionales  y  no  
+funcionales,
+ 
+los
+ 
+actores
+ 
+involucrados,
+ 
+criterios
+ 
+de
+ 
+aceptación,
+ 
+glosario
+ 
+y
+ 
+demás
+ 
+elementos
+ 
+necesarios
+ 
+para
+ 
+la
+ 
+correcta
+ 
+implementación
+ 
+del
+ 
+software.
+ 
+ MÓDULOS  
+ 
+Nombre  de  la  funcionalidad  
+Descripción  Prioridad  (Alta  /  Media  /  Baja)  
+Salida  (s)  
+Módulo  1:  Autenticación  y  Usuarios  
+Incluye  el  inicio  de  sesión  para  usuarios  registrados  (Admin,  Empleado,  Técnico)  y  la  recuperación  de  acceso  mediante  código  provisional  enviado  al  correo.  
+Alta  El  sistema  redirige  al  usuario  según  su  rol  y  permite  el  cambio  de  contraseña  en  caso  de  recuperación.  
+Módulo  2:  Catálogos  (Web)  
+Configuración  técnica  de  tipos  de  activos,  ubicaciones  (campus,  edificios,  aulas)  y  prioridades  de  mantenimiento.  
+Media  Listas  de  opciones  disponibles  para  el  registro  de  activos  y  la  creación  de  reportes.  
+ InvTrack   4   
+
+===== PAGE 6 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+Módulo  3:  Gestión  de  Activos  (Web)  
+Alta,  edición  y  eliminación  lógica  de  activos,  generación  automática  de  códigos  QR  e  importación  masiva  desde  archivos  Excel.  
+Alta  Activo  almacenado  con  estatus  "Disponible",  visualización  de  QR  y  resumen  de  registros  importados.  
+Módulo  4:  Resguardos  (Web  +  Móvil)  
+Asignación  de  activos  disponibles  a  empleados  y  confirmación  física  mediante  escaneo  de  QR,  checklist  y  fotos  de  evidencia.  
+Alta  Registro  de  asignación  creado  y  cambio  automático  del  estatus  del  activo  a  "Resguardado".  
+Módulo  5:  Reportes  de  Daño  (Móvil  +  Web)  
+Reporte  de  fallas  por  parte  del  empleado  mediante  escaneo  de  QR,  adjuntando  descripción  detallada  y  evidencia  física.  
+Alta  Generación  de  una  solicitud  de  mantenimiento  correctivo  dentro  del  sistema  centralizado.  
+Módulo  6:  Mantenimientos  y  Auditoría  
+Asignación  de  técnicos,  registro  de  diagnósticos/piezas,  consulta  de  bitácora  histórica  y  visualización  de  métricas  en  el  Dashboard.  
+Alta  Registro  de  servicio  cerrado,  reporte  cronológico  de  actividad  y  gráficas  de  indicadores  administrativos.  
+ InvTrack   5   
+
+===== PAGE 7 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+ 
+Fuentes  de  Información  
+Personal  
+Para  la  recolección  de  requerimientos  se  consultaron  las  siguientes  fuentes  de  información:   Rol  Nombre  Fecha  de  entrevista  
+Cliente   CRISTIAN  ALEXIS  CAMPOS  ROMAN  20/Enero/2026  
+ 
+Otras   
+ Nombre  Descripción  
+Intento  de  inicio  de  sesión.  *  Si  el  usuario  ingresa  mal  la  contraseña  más  de  3  veces,  el  sistema  bloqueará  el  acceso  por  3  minutos.  
+Restricción  de  contraseñas.  Una  nueva  contraseña  debe  incluir  una  mayúscula,  un  número  y  un  carácter  especial.  
+Glosario  
+ Término  Descripción  
+UI  Es  la  parte  visual  e  interactiva  de  un  sistema  o  aplicación:  los  botones,  iconos,  tipografía,  colores,  menús  y  demás  elementos  con  los  que  el  usuario  interactúa  directamente.  
+ InvTrack   6   
+
+===== PAGE 8 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+Su  objetivo  es  que  la  interfaz  sea  clara,  atractiva  y  fácil  de  usar.  Interfaz  de  usuario.  Parte  visual  e  interactiva  del  sistema.  
+UX  Es  el  conjunto  de  sensaciones,  percepciones  y  respuestas  del  usuario  al  interactuar  con  el  sistema.  Involucra  la  facilidad  con  la  que  puede  cumplir  una  tarea,  su  satisfacción  y  la  eficiencia  general  del  proceso.Experiencia  del  usuario.  Sensaciones  y  facilidad  de  uso  percibidas  por  el  usuario.  
+ROL  Un  rol  es  la  función,  papel  o  cargo  que  una  persona  desempeña  en  una  situación,  grupo  o  sistema.  Define  las  tareas,  comportamientos,  obligaciones  y  expectativas  asociadas  a  una  posición,  como  puede  ser  un  rol  de  liderazgo  en  un  equipo  de  trabajo  o  un  rol  social  en  la  sociedad.  La  palabra  también  se  usa  para  el  personaje  que  interpreta  un  actor.  Función  o  perfil  asignado  a  un  usuario  (administrador,  mesero,  cocinero).  
+ 
+Requerimientos  Funcionales  
+Módulo  1: Autenticación  y  Usuarios   No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+1.1  Nombre:  Inicio  de  Sesión   
+Descripción:  Permitir  el  acceso  seguro  a  la  plataforma  web  y  móvil  validando  las  credenciales  del  usuario  .  
+ 
+Datos  de  entrada:  Correo  electrónico  y  contraseña  .  
+ 
+ Muy  Alta  
+ InvTrack   7   
+
+===== PAGE 9 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+Reglas  de  negocio:  
+ 
+●  El  usuario  debe  existir  y  estar  activo  .  ●  Según  el  rol  (Admin,  Empleado  o  Técnico),  se  redirige  al  módulo  correspondiente.  
+ 
+Criterios  de  aceptación:  
+ 
+●  Acceso  concedido  con  credenciales  correctas.  ●  Mensaje  de  error  para  credenciales  inválidas  o  usuario  inactivo.  
+  No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+1.2  Nombre:  Recuperación  de  Contraseña  
+ 
+Descripción:  Permitir  que  los  usuarios  restablezcan  su  acceso  al  sistema  de  forma  segura  en  caso  de  olvido,  sin  intervención  directa  del  administrador.  
+ 
+Datos  de  entrada:  Correo  electrónico  institucional.  
+ 
+Reglas  de  negocio:   
+●  El  correo  ingresado  debe  estar  registrado  y  activo  en  la  base  de  datos  de  InvTrack  ●  El  enlace  o  código  de  recuperación  debe  tener  una  vigencia  de  15  minutos  por  seguridad.  
+ Alta  
+ InvTrack   8   
+
+===== PAGE 10 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+●  Al  restablecer,  la  nueva  contraseña  no  puede  ser  igual  a  las  últimas  3  utilizadas.  
+Criterios  de  aceptación:   
+●  El  sistema  debe  enviar  un  correo  electrónico  automático  (vía  SMTP)  con  el  enlace  o  código  de  verificación  tras  validar  el  correo.  ●  Si  el  correo  no  existe,  el  sistema  debe  mostrar  un  mensaje  genérico  para  evitar  la  exposición  de  cuentas  existentes.  ●  Tras  el  cambio  exitoso,  el  usuario  debe  ser  redirigido  al  Inicio  de  Sesión  y  recibir  un  correo  de  confirmación  de  cambio  de  contraseña.  ●  El  sistema  debe  invalidar  el  código  de  recuperación  una  vez  que  ha  sido  utilizado.  
+  No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+1.3  Nombre:  Registro  de  Usuarios  
+ 
+Descripción:  Alta  de  personal  por  el  Administrador.  
+ 
+Datos  de  entrada:  Nombre,  correo,  CURP,  área  y  rol  .  
+ 
+Reglas:   
+●  Solo  el  Administrador  puede  crear  usuarios  .  ●  El  correo  y  la  CURP  no  deben  repetirse  .  ●  Número  de  empleado:   ●  Últimos  2  del  CURP  más  consecutivo.  
+ 
+Criterios  de  Aceptación:   
+Muy  Alta  
+ InvTrack   9   
+
+===== PAGE 11 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+●  El  sistema  no  debe  permitir  guardar  el  registro  si  el  formato  de  la  CURP  es  incorrecto  o  ya  existe  .  ●  El  número  de  empleado  debe  generarse  automáticamente  usando  los  últimos  2  dígitos  de  la  CURP  más  un  consecutivo  .  ●  Se  debe  verificar  la  recepción  de  un  correo  automático  en  la  bandeja  del  nuevo  usuario  con  su  contraseña  temporal.  
+ 
+ 
+ 
+Módulo  2:  Catálogos  (Web)   No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+2.1  Nombre:  Catálogo  de  Ubicaciones.  
+ 
+Descripción:  Estructurar  los  espacios  físicos  donde  se  encuentran  los  activos,  formados  por  la  combinación  de  Campus,  Edificio  y  Aula  .  
+ 
+Datos  de  entrada:  Nombre  del  Campus  (ej.  UTEZ),  Nombre  del  Edificio  (ej.  Docencia  1),  Identificador  de  Aula/Laboratorio  (ej.  A4)  y  Descripción  .  
+ 
+Reglas  de  negocio:  
+●  La  ubicación  final  es  una  concatenación  de  los  tres  niveles;  el  sistema  debe  validar  que  no  existan  combinaciones  duplicadas.  
+ Criterios  de  aceptación:   
+Media  
+ InvTrack   10   
+
+===== PAGE 12 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+●  La  interfaz  debe  permitir  dar  de  alta  el  Campus  primero,  luego  asociarle  Edificios  y  finalmente  Aulas.  ●  En  el  registro  de  activos,  el  usuario  debe  poder  filtrar  la  ubicación  por  estos  tres  niveles  jerárquicos.  
+  No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+2.2     
+Nombre:  Catálogo  de  Tipos  de  Activo  (Productos).  
+ 
+Descripción:  Gestionar  las  categorías  de  los  bienes  tecnológicos  para  estandarizar  el  inventario.  
+ 
+Datos  de  entrada:   
+Nombre  del  tipo  (ej.  Laptop,  Proyector),  Marca,  Modelo,  Descripción  técnica  y  Estatus  (Activo/Inactivo)  .  
+ 
+Reglas  de  negocio:   
+●  No  se  pueden  eliminar  tipos  de  activos  que  ya  tengan  bienes  asociados  en  el  Módulo  3;  solo  se  podrán  desactivar.  
+ Criterios  de  aceptación:   
+●  El  sistema  debe  permitir  la  creación  de  categorías  con  sus  especificaciones  técnicas  base.  ●  Al  registrar  un  activo,  este  catálogo  debe  alimentar  el  selector  de  "Tipo  de  Activo".  
+Media  
+  
+ InvTrack   11   
+
+===== PAGE 13 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+2.3  Nombre:  Catálogo  de  Prioridades  de  Mantenimiento.  
+ 
+Descripción:  Definir  los  niveles  de  urgencia  para  la  atención  de  los  reportes  de  daño.  
+ 
+Datos  de  entrada:  Nombre  de  la  prioridad  (Alta,  Media,  Baja)  y  descripción  del  tiempo  de  respuesta  esperado.  
+ 
+Reglas  de  negocio:   
+●  Este  catálogo  es  vital  para  el  Módulo  5  (Reportes)  y  Módulo  6  (Asignación  de  Técnicos).  
+ Criterios  de  aceptación:  
+●  El  administrador  debe  poder  asignar  un  color  visual  a  cada  prioridad  (ej.  Rojo  para  Alta)  para  el  Dashboard  ●  Los  reportes  de  daño  deben  heredar  obligatoriamente  una  opción  de  este  catálogo.  
+ 
+Baja  
+  
+Módulo  3:  Gestión  de  Activos  (Web)   No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+ InvTrack   12   
+
+===== PAGE 14 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+3.1  Nombre:  Registro  de  Activo  
+Descripción:  Formulario  para  dar  de  alta  equipos  tecnológicos  en  el  inventario  .  
+Datos  de  entrada:  Código  interno,  serie,  tipo  de  activo,  descripción,  fecha,  costo,  ubicación  y  estatus  .  
+Reglas  de  negocio:  
+●  El  estatus  inicial  por  defecto  es  "Disponible"  .  ●  No  se  permiten  números  de  serie  duplicados  .  
+ 
+Criterios  de  aceptación:  
+●  Almacenamiento  correcto  en  la  BD.  ●  Posibilidad  de  editar  o  realizar  eliminación  lógica.  
+Alta   
+       No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+3.2  Nombre:  Generación  de  Código  QR  
+Descripción:  Identificadores  únicos  para  activos.  
+ 
+Datos  de  entrada:  
+●  ID  del  activo  (Generado  por  la  BD)  
+Muy  alta  
+ InvTrack   13   
+
+===== PAGE 15 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+●   Código  interno  del  bien  .  
+ 
+Reglas  de  negocio:   
+●  El  código  QR  debe  generarse  de  forma  automática  e  inmediata  al  momento  de  guardar  un  nuevo  activo  en  el  sistema  .  ●  La  información  embebida  en  el  QR  debe  ser  estática  y  corresponder  únicamente  al  ID  y  código  interno  para  asegurar  la  compatibilidad  con  el  escaneo  móvil  .  
+Criterios  de  Aceptación:   
+●  El  código  QR  generado  debe  ser  legible  por  cualquier  lector  estándar  y  contener  el  ID  y  código  interno  del  bien  .  ●  El  usuario  debe  poder  descargar  el  QR  en  formato  .png  o  .pdf  con  una  resolución  mínima  de  300dpi  para  impresión.  
+ 
+Módulo  4:  Resguardos  (Web  +  Móvil)  No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+4.1  Nombre:  Confirmación  de  Resguardo  
+Descripción:  El  empleado  confirma  la  recepción  física  del  activo  mediante  la  app  móvil  .  
+ 
+Datos  de  entrada:  Escaneo  de  QR,  checklist  de  estado  y  fotos  de  evidencia  .  
+Reglas  de  negocio:  
+●  Solo  para  activos  con  estatus  "Disponible".  
+Muy  alta  
+ InvTrack   14   
+
+===== PAGE 16 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+●  El  checklist  incluye  opciones  de  "No  Aplica"  para  encendido,  pantalla  y  cargador  
+ 
+Criterios  de  aceptación:  
+ 
+●  El  estatus  del  activo  cambia  a  "Resguardado".  ●  Registro  de  la  evidencia  fotográfica  en  la  bitácora.  
+  No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+4.2  Nombre:  Devolución  de  Activo  
+ 
+Descripción:  Proceso  para  que  el  empleado  entregue  el  activo  y  se  libere  su  resguardo  .  
+ 
+Datos  de  entrada:  Escaneo  de  QR,  fotos  de  devolución  y  observaciones  .  
+ 
+Reglas  de  negocio:  
+ 
+●  Sin  fotos  de  evidencia  no  se  puede  procesar  la  devolución  .  
+ 
+Criterios  de  aceptación:  
+Alta  
+ InvTrack   15   
+
+===== PAGE 17 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+ 
+●  El  activo  vuelve  a  estatus  "Disponible".  ●  Se  genera  el  registro  histórico  del  movimiento  
+  No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+4.3  Nombre:  Asignación  de  Activo  
+ 
+Descripción:  El  Administrador  vincula  activos  disponibles  a  un  empleado  con  fecha  y  observaciones.  
+Datos  de  entrada:  ID  del  Activo,  ID  del  Empleado,  Fecha  y  Observaciones  .  
+Reglas  de  negocio:  
+●  Solo  activos  con  estatus  "Disponible"  pueden  ser  seleccionados  .  ●  Al  guardar,  el  estatus  del  activo  cambia  automáticamente  a  "Asignado" .  
+Criterios  de  aceptación:   
+●  El  registro  de  asignación  debe  crearse  en  la  base  de  datos  centralizada  .  ●  El  activo  debe  aparecer  en  la  bandeja  de  entrada  de  la  App  Móvil  del  empleado  designado  
+Alta  
+  No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+ InvTrack   16   
+
+===== PAGE 18 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+4.4  Nombre:  Confirmación  de  Resguardo  
+ 
+Descripción:  El  empleado  confirma  la  recepción  física  del  activo  mediante  la  app  móvil.  
+ 
+Datos  de  entrada:  Escaneo  de  QR,  checklist  de  estado  y  fotos  de  evidencia  .  
+ 
+Reglas  de  negocio:   
+●  El  checklist  debe  incluir  opciones  de  "No  Aplica"  para  componentes  específicos  .  ●  Al  finalizar  el  proceso,  el  estatus  del  activo  cambia  automáticamente  a  "Aceptado"  .  
+Criterios  de  aceptación:   
+●  El  cambio  de  estatus  a  "Aceptado"  debe  reflejarse  en  tiempo  real  en  la  plataforma  Web  .  ●  La  evidencia  fotográfica  debe  quedar  vinculada  permanentemente  a  la  bitácora  del  activo.  
+Alta  
+ 
+MÓDULO  5:  REPORTES  DE  DAÑO  (MÓVIL  –  WEB)   No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+5.1  Nombre:  Crear  Reporte  de  Daño.  
+ 
+Alta  
+ InvTrack   17   
+
+===== PAGE 19 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+Descripción:  Permitir  que  el  empleado  informe  sobre  una  avería  o  falla  técnica  detectada  en  un  activo  bajo  su  resguardo  o  ubicado  en  una  zona  común.  
+ 
+Datos  de  Entrada:   
+●  Escaneo  de  código  QR  (ID  y  Código  Interno)   ●  Tipo  de  falla  ●  Descripción  detallada  del  problema   ●  Prioridad  percibida  (Alta,  Media,  Baja)   ●  Evidencia  fotográfica  (Mínimo  1  foto)   
+Reglas  de  Negocio:   
+●  El  sistema  debe  identificar  automáticamente  el  activo  mediante  el  escaneo  del  QR  .  ●  Un  reporte  no  puede  ser  enviado  sin  al  menos  una  fotografía  de  evidencia  .  ●  Al  generar  el  reporte,  se  crea  automáticamente  una  solicitud  en  el  panel  de  mantenimientos  .  
+ Criterios  de  Aceptación:   
+●  La  aplicación  móvil  debe  confirmar  el  envío  exitoso  del  reporte  y  mostrar  un  folio  de  seguimiento  al  usuario.  ●  El  Administrador  debe  visualizar  de  inmediato  el  reporte  en  la  plataforma  Web  con  todos  los  datos  y  archivos  adjuntos.  ●  El  sistema  debe  permitir  la  reproducción  del  video  adjunto  directamente  desde  la  interfaz  del  administrador  sin  necesidad  de  descarga  externa.  
+ 
+  
+Módulo  6:  Mantenimientos  y  historial  (Web  +  Móvil)   No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+ InvTrack   18   
+
+===== PAGE 20 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+6.1  Nombre:  Atención  y  Cierre  de  Mantenimiento.  
+ 
+Descripción:  Proceso  mediante  el  cual  el  Técnico  de  Mantenimiento  registra  las  acciones  correctivas  o  preventivas  realizadas  sobre  un  activo  reportado,  adjunta  las  evidencias  finales  y  determina  si  el  equipo  está  listo  para  volver  al  servicio  o  si  debe  ser  dado  de  baja  definitiva.  
+ 
+Datos  de  entrada:  
+●   Diagnóstico  técnico  detallado  .  ●  Acciones  realizadas  (reparación,  limpieza,  cambio  de  piezas)  ●  Lista  de  piezas  o  insumos  utilizados  .  ●  Fotos  de  evidencia  del  trabajo  terminado  .  ●  Estatus  final  del  activo:  Reparado  o  Irreparable  .  ●  Observaciones  adicionales  .  
+ Reglas  de  negocio:   
+●  Obligatoriedad  de  evidencia:  No  se  puede  guardar  el  cierre  si  el  campo  de  "Diagnóstico"  está  vacío  o  si  no  hay  al  menos  una  fotografía  adjunta   ●  Flujo  de  Baja:  Si  el  técnico  marca  el  activo  como  "Irreparable",  el  sistema  debe  generar  automáticamente  una  solicitud  de  baja  dirigida  al  Administrador;  el  activo  permanecerá  bloqueado  hasta  que  el  Admin  la  apruebe  .  ●  Exclusividad  de  Estatus:  Mientras  el  activo  tenga  el  estatus  "Mantenimiento",  el  sistema  debe  ocultarlo  de  cualquier  lista  de  asignación  para  resguardos  .   
+Criterios  de  aceptación:  
+●  El  sistema  debe  validar  en  tiempo  real  que  el  campo  "Diagnóstico"  contenga  una  explicación  técnica  de  al  menos  20  caracteres  para  evitar  registros  incompletos.  ●  Al  seleccionar  la  opción  "Irreparable",  el  sistema  debe  disparar  una  notificación  (push  o  correo)  al  rol  de  Administrador  informando  que  el  activo  requiere  aprobación  de  baja.  ●  Una  vez  guardado  el  cierre  como  "Reparado",  el  estatus  del  activo  en  la  base  de  datos  debe  cambiar  automáticamente  a  "Disponible"  para  que  el  administrador  pueda  asignarlo  nuevamente.  
+Alta  
+ InvTrack   19   
+
+===== PAGE 21 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+●  El  sistema  debe  registrar  la  fecha  y  hora  exacta  del  cierre  para  alimentar  la  métrica  de  "Tiempo  promedio  de  atención"  en  el  Dashboard.  
+    No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+6.3  Nombre:  Bitácora  /  Historial  por  Activo.  
+Descripción:  Interfaz  centralizada  que  permite  consultar  la  trazabilidad  completa  de  un  bien  tecnológico  desde  su  alta  hasta  su  baja  definitiva,  consolidando  todos  los  eventos  ocurridos.  
+Datos  de  entrada:   
+●  Código  interno  o  número  de  serie  del  activo  .  ●  Filtros  opcionales  por  rango  de  fechas  o  tipo  de  evento.  
+Reglas  de  negocio:   
+●  Integridad  Histórica:  El  historial  no  puede  ser  modificado  ni  eliminado;  es  un  registro  de  solo  lectura  para  auditoría.  ●  Visibilidad  de  Eventos:  Debe  mostrar  obligatoriamente:  Resguardos  históricos,  reportes  de  daño,  mantenimientos  realizados  y  todos  los  cambios  de  estatus  .  ●  Acceso:  Disponible  principalmente  para  el  Administrador  desde  la  web  .  
+Criterios  de  aceptación:   
+●  El  sistema  debe  desplegar  una  línea  de  tiempo  o  tabla  cronológica  que  muestre  quién  tuvo  el  activo  (Empleado),  qué  técnico  lo  reparó  y  en  qué  fechas  .  ●  Cada  evento  de  mantenimiento  en  la  bitácora  debe  permitir  un  acceso  directo  (link)  para  visualizar  las  fotos  de  evidencia  y  el  diagnóstico  técnico  registrados  en  el  Módulo  6  .  
+Alta  
+ InvTrack   20   
+
+===== PAGE 22 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+●  Al  ingresar  un  código  interno  inexistente,  el  sistema  debe  informar  que  no  hay  registros  asociados.  ●  El  historial  debe  mostrar  claramente  el  estatus  actual  del  bien  al  inicio  de  la  consulta.  
+ 
+  No.  Descripción  Prioridad  Muy  Alta  /  Alta/  Media/  Baja  
+6.4  Nombre:  Dashboard  
+ 
+Descripción:  Métricas  visuales  del  sistema.  
+ 
+Criterios  de  Aceptación:   
+●  Las  gráficas  de  "Activos  por  estatus"  deben  actualizarse  automáticamente  al  realizar  cambios  en  los  módulos  4  o  6  .  ●  El  indicador  de  "Tiempo  promedio  de  atención"  debe  calcularse  restando  la  fecha  de  cierre  de  mantenimiento  de  la  fecha  de  reporte  de  daño.  
+ 
+Baja  
+  Firmas  
+   
+ InvTrack   21   
+
+===== PAGE 23 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+Cristian  Alexis  Campos  Román  
+   Renata  Lizbeth  Ortiz  Chavez  
+IDGS.  Cristian  Alexis  Campos  Román  
+Cliente
+ 
+ 
+ 
+ Renata  Lizbeth  Ortiz  Chavez  
+Líder
+ 
+del
+ 
+proyecto
+ 
+ 
+ 
+ 
+ 
+  
+Fecha:  Enero  2026  
+Requerimientos  de  Interfaz  con  Usuario  
+●  1.1  La  interfaz  debe  ser  intuitiva  y  permitir  una  navegación  fluida  para  los  roles  de  
+Administrador,
+ 
+Empleado
+ 
+y
+ 
+Técnico
+ 
+.
+ ●  1.2  Debe  contar  con  botones  táctiles  de  gran  tamaño  en  la  versión  móvil  para  facilitar  el  
+escaneo
+ 
+de
+ 
+QR
+ 
+y
+ 
+la
+ 
+toma
+ 
+de
+ 
+fotos.
+ ●  1.3  La  línea  visual  debe  ser  moderna,  minimalista  y  coherente  con  la  identidad  de  
+InvTrack.
+ ●  1.4  El  diseño  debe  ser  responsivo,  adaptándose  a  pantallas  de  smartphones  (Android),  
+tablets
+ 
+y
+ 
+laptops
+ 
+.
+ ●  1.5  Se  deben  incluir  diálogos  de  confirmación  antes  de  acciones  críticas  como  la  "Baja"  
+de
+ 
+un
+ 
+activo
+ 
+o
+ 
+el
+ 
+"Cierre"
+ 
+de
+ 
+mantenimiento.
+ 
+Requerimientos  de  Confiabilidad  
+●  2.1  El  sistema  debe  asegurar  que  las  evidencias  fotográficas  y  los  reportes  no  se  
+pierdan
+ 
+si
+ 
+se
+ 
+pierde
+ 
+la
+ 
+conexión
+ 
+a
+ 
+internet
+ 
+durante
+ 
+la
+ 
+carga.
+ ●  2.2  Todas  las  contraseñas  deben  almacenarse  en  la  base  de  datos  centralizada  
+utilizando
+ 
+algoritmos
+ 
+de
+ 
+cifrado
+ 
+fuertes.
+ ●  2.3  La  disponibilidad  del  servidor  central  deberá  ser  del  99.5%  para  asegurar  que  los  
+técnicos
+ 
+puedan
+ 
+reportar
+ 
+en
+ 
+campo.
+ ●  2.4  Solo  los  usuarios  con  sesión  activa  y  rol  verificado  podrán  acceder  a  los  módulos  de  
+gestión
+ 
+.
+ ●  2.5  El  sistema  bloqueará  temporalmente  el  acceso  tras  tres  intentos  fallidos  de  inicio  de  
+sesión
+ 
+para
+ 
+prevenir
+ 
+ataques
+ 
+de
+ 
+fuerza
+ 
+bruta.
+ 
+Requerimientos  de  Eficiencia  
+ InvTrack   22   
+
+===== PAGE 24 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ ●  3.1  El  sistema  debe  soportar  la  carga  simultánea  de  archivos  (imágenes)  de  al  menos  
+10
+ 
+usuarios
+ 
+sin
+ 
+degradar
+ 
+la
+ 
+velocidad.
+ ●  3.2  Las  consultas  al  historial/bitácora  del  activo  deben  cargar  en  menos  de  3  segundos  .  ●  3.3  El  servidor  debe  estar  optimizado  para  manejar  la  importación  masiva  de  activos  
+desde
+ 
+Excel
+ 
+de
+ 
+forma
+ 
+eficiente
+ 
+.
+ 
+Requerimientos  de  Mantenimiento  
+●  4.1  El  código  fuente  en  React  (Web)  y  Android  (Móvil)  debe  estar  documentado  
+siguiendo
+ 
+estándares
+ 
+de
+ 
+industria.
+ ●  4.2  Los  catálogos  de  ubicaciones  y  tipos  de  activos  deben  ser  modificables  desde  la  
+interfaz
+ 
+web
+ 
+sin
+ 
+tocar
+ 
+el
+ 
+código
+ 
+.
+ ●  4.3  La  arquitectura  debe  permitir  actualizaciones  del  esquema  de  base  de  datos  sin  
+pérdida
+ 
+de
+ 
+la
+ 
+información
+ 
+de
+ 
+resguardos
+ 
+existentes.
+ ●  4.4  Se  debe  emplear  una  arquitectura  de  microservicios  o  modular  para  separar  el  
+manejo
+ 
+de
+ 
+archivos
+ 
+de
+ 
+la
+ 
+lógica
+ 
+de
+ 
+negocio
+ 
+.
+ 
+Requerimientos  de  Portabilidad  
+●  5.1  La  aplicación  web  deberá  ser  compatible  con  las  últimas  versiones  de  Chrome.  ●  5.2  La  aplicación  móvil  deberá  ejecutarse  en  dispositivos  Android,  permitiendo  el  acceso  
+a
+ 
+la
+ 
+cámara
+ 
+para
+ 
+el
+ 
+QR.
+ ●  5.3  El  sistema  debe  ser  instalable  como  una  PWA  (Progressive  Web  App)  o  aplicación  
+nativa
+ 
+según
+ 
+se
+ 
+requiera.
+ 
+Requerimientos  de  Interoperabilidad  (Módulo  6)  
+●  6.1  El  sistema  debe  integrarse  con  un  servicio  de  correos  (SMTP)  para  el  envío  de  
+contraseñas
+ 
+temporales
+ 
+y
+ 
+alertas
+ 
+de
+ 
+mantenimiento.
+ ●  6.2  Debe  permitir  la  generación  de  códigosQR.  ●  6.3  La  API  debe  estar  diseñada  en  formato  RESTful  (JSON)  para  permitir  futuras  
+conexiones
+ 
+con
+ 
+sistemas
+ 
+contables.
+ ●  6.4  Se  utilizará  el  protocolo  HTTPS  para  toda  la  comunicación  entre  las  aplicaciones  y  el  
+servidor
+ 
+centralizado.
+ 
+Restricciones  de  Diseño  y  Construcción  (Módulo  8)     InvTrack   23   
+
+===== PAGE 25 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ ●  8.1  El  desarrollo  se  realizará  utilizando  React  para  la  web  y  un  servidor  basado  en  la  
+misma
+ 
+tecnología.
+ ●  8.2  El  almacenamiento  de  evidencias  debe  gestionarse  en  un  sistema  de  archivos  
+organizado
+ 
+por
+ 
+ID
+ 
+de
+ 
+activo.
+ ●  8.3  Se  respetarán  los  colores  de  InvTrack.  ●  8.4  La  gestión  de  la  CURP  y  datos  personales  debe  cumplir  estrictamente  con  la  Ley  
+Federal
+ 
+de
+ 
+Protección
+ 
+de
+ 
+Datos
+ 
+Personales
+ 
+en
+ 
+Posesión
+ 
+de
+ 
+los
+ 
+Particulares.
+ 
+Escenarios  de  Operación
+ 
+ 
+ InvTrack   24   
+
+
+===== PAGE 26 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+ 
+ InvTrack   25   
+
+
+===== PAGE 27 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+ 
+ InvTrack   26   
+
+
+===== PAGE 28 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+ 
+ 
+ InvTrack   27   
+
+
+===== PAGE 29 =====
+
+ 
+ 
+InvTrack  Universidad  Tecnológica  Emiliano  Zapata   del  Estado  de  Morelos  
+Documento  Formal  de  Requisitos  
+Versión:   I  
+ 
+Control  de  Cambios  
+  
+Fecha  Autor  (es)  Versión  Observaciones  
+16/02/26  invTrack  1.0  Se  creó  el  documento  formal  de  requisitos  (ERS)  ,  el  cual  fue  basado  en  la  entrevista  con  el  cliente  CRISTIAN  ALEXIS  CAMPOS  ROMAN  
+   
+ InvTrack   28   

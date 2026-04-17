@@ -5,7 +5,10 @@ import android.util.Log
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.integradora5d.data.model.ResguardoResponse
 import com.example.integradora5d.data.network.RetrofitClient
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
@@ -19,14 +22,15 @@ class PerfilViewModel : ViewModel() {
     var area by mutableStateOf("")
     var estaCargando by mutableStateOf(false)
 
+    private val _bienesResguardados = MutableStateFlow<List<ResguardoResponse>>(emptyList())
+    val bienesResguardados = _bienesResguardados.asStateFlow()
+
     fun cargarDatosUsuario(context: Context) {
         viewModelScope.launch {
             estaCargando = true
             try {
-                // Forzamos la creación del cliente con el interceptor actualizado
                 val api = RetrofitClient.create(context)
                 val user = api.getPerfilPropio()
-
                 nombre = user.nombre
                 correo = user.correo
                 fechaNacimiento = user.fechaNacimiento ?: "No especificada"
@@ -35,12 +39,14 @@ class PerfilViewModel : ViewModel() {
                 numeroEmpleado = user.numeroEmpleado ?: "N/A"
                 area = user.area ?: "General"
 
+                // Cargar solo los resguardos confirmados del usuario
+                val resguardos = api.getResguardos()
+                _bienesResguardados.value = resguardos.filter { it.confirmado && it.fechaDevolucion == null }
+
             } catch (e: HttpException) {
-                // Captura errores específicos del servidor (403, 404, 500)
                 Log.e("API_ERROR", "Error del servidor: ${e.code()}")
                 nombre = "Error del servidor (${e.code()})"
             } catch (e: Exception) {
-                // Captura errores de red o de parsing de JSON
                 Log.e("API_ERROR", "Error de red/datos: ${e.message}")
                 nombre = "Error de conexión"
             } finally {

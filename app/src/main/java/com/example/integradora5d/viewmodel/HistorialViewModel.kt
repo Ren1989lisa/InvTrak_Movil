@@ -18,6 +18,12 @@ class HistorialViewModel : ViewModel() {
     var mensajeError by mutableStateOf<String?>(null)
 
     fun cargarHistorial(context: Context, etiqueta: String) {
+        if (etiqueta == "todos") {
+            mensajeError = "Selecciona un activo específico desde la lista de bienes para ver su historial."
+            cargando = false
+            return
+        }
+
         val idL = etiqueta.filter { it.isDigit() }.toLongOrNull()
 
         if (idL == null) {

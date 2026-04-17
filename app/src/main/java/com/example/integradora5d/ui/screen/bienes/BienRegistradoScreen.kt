@@ -1,5 +1,6 @@
 package com.example.integradora5d.ui.screen.bienes
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,18 +21,23 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.integradora5d.ui.components.BienRegistradoCard
 import com.example.integradora5d.ui.components.DrawerSelector
 import com.example.integradora5d.viewmodel.BienRegistradoViewModel
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.math.ceil
+
+// ... (tus imports se mantienen igual)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BienRegistradoScreen(
     navController: NavController,
-    viewModel: BienRegistradoViewModel,
+    viewModel: BienRegistradoViewModel = viewModel(),
     userRole: String
 ) {
     var busqueda by remember { mutableStateOf("") }
@@ -39,24 +45,49 @@ fun BienRegistradoScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    LaunchedEffect(userRole) {
+    LaunchedEffect(Unit) {
         viewModel.cargarDatosSegunRol(context, userRole)
     }
 
+    // Estados para filtros
     var filtrosVisibles by remember { mutableStateOf(false) }
-    var ubicacionSeleccionada by remember { mutableStateOf("Todas") }
+    var fechaSeleccionada by remember { mutableStateOf("") }
+    var mostrarDatePicker by remember { mutableStateOf(false) }
+    var precioInput by remember { mutableStateOf("") }
 
+    val ubicacionOptions = remember(viewModel.bienesRegistrados) {
+        val locs = viewModel.bienesRegistrados.mapNotNull { it.ubicacion }.distinct()
+        listOf("Todas") + locs
+    }
+    var ubicacionSeleccionada by remember { mutableStateOf(ubicacionOptions.firstOrNull() ?: "Todas") }
+
+    // PAGINACIÓN
     var paginaActual by remember { mutableStateOf(1) }
     val cardsPorPagina = 6
 
-    val bienesFiltrados by remember(busqueda, viewModel.bienesRegistrados.size, ubicacionSeleccionada) {
+    fun parseCosto(costoStr: String): Int? {
+        val digits = costoStr.filter { it.isDigit() }
+        return digits.takeIf { it.isNotEmpty() }?.toInt()
+    }
+
+    val bienesFiltrados by remember(fechaSeleccionada, precioInput, ubicacionSeleccionada, busqueda, viewModel.bienesRegistrados) {
         derivedStateOf {
             viewModel.bienesRegistrados.filter { bien ->
-                val matchesBusqueda = busqueda.isBlank() ||
-                        bien.descripcion.contains(busqueda, ignoreCase = true) ||
-                        bien.etiqueta.contains(busqueda, ignoreCase = true)
+                val matchesBusqueda = busqueda.isBlank() || listOfNotNull(bien.etiqueta, bien.tipo, bien.descripcion).any {
+                    it.contains(busqueda, ignoreCase = true)
+                }
                 val matchesUbicacion = ubicacionSeleccionada == "Todas" || bien.ubicacion == ubicacionSeleccionada
-                matchesBusqueda && matchesUbicacion
+                val matchesPrecio = if (precioInput.isBlank()) true else {
+                    val max = precioInput.filter { it.isDigit() }.toIntOrNull()
+                    val costo = parseCosto(bien.costo)
+                    if (max == null || costo == null) true else costo <= max
+                }
+                val matchesFecha = if (fechaSeleccionada.isBlank()) true else {
+                    val diaSeleccionado = fechaSeleccionada.split(" ").firstOrNull()?.toIntOrNull()
+                    val diaBien = bien.fechaAlta.split("-").firstOrNull()?.toIntOrNull()
+                    diaSeleccionado == diaBien
+                }
+                matchesBusqueda && matchesUbicacion && matchesPrecio && matchesFecha
             }
         }
     }
@@ -65,8 +96,16 @@ fun BienRegistradoScreen(
     val inicio = (paginaActual - 1) * cardsPorPagina
     val bienesPagina = bienesFiltrados.drop(inicio).take(cardsPorPagina)
 
-    // Tus colores de gradiente originales
     val azulGradiente = Brush.horizontalGradient(colors = listOf(Color(0xFF1969B6), Color(0xFF73BAFF)))
+
+    if (mostrarDatePicker) {
+        val cal = Calendar.getInstance()
+        DatePickerDialog(context, { _, y, m, d ->
+            val c = Calendar.getInstance().apply { set(y, m, d) }
+            fechaSeleccionada = SimpleDateFormat("dd MMM yyyy", Locale("es")).format(c.time)
+            mostrarDatePicker = false
+        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -117,7 +156,8 @@ fun BienRegistradoScreen(
                     LazyColumn(modifier = Modifier.weight(1f)) {
                         items(bienesPagina) { bien ->
                             BienRegistradoCard(bien = bien, onClick = {
-                                // Navegación usando el ID que definiste en NavGraph
+                                // CAMBIO CLAVE: Ya no usamos el savedStateHandle pesado.
+                                // Pasamos el ID directamente en la ruta de navegación.
                                 navController.navigate("bien_detalle/${bien.idOriginal}")
                             })
                         }

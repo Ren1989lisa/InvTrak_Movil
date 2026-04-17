@@ -1,20 +1,23 @@
-package com.example.integradora5d.ui.viewmodel
+package com.example.integradora5d.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.integradora5d.data.model.BienRegistrado
-import com.example.integradora5d.data.network.ApiService
 import com.example.integradora5d.data.network.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class EscaneoQRViewModel(private val apiService: ApiService) : ViewModel() {
+sealed class QrResultado {
+    data class ResguardoPendiente(val activoId: Long, val resguardoId: Long) : QrResultado()
+    data class MantenimientoAsignado(val mantenimientoId: Long) : QrResultado()
+    data class Error(val mensaje: String) : QrResultado()
+}
 
-    private val _bienEncontrado = MutableStateFlow<BienRegistrado?>(null)
-    val bienEncontrado = _bienEncontrado.asStateFlow()
+class EscaneoQRViewModel : ViewModel() {
+
+    private val _resultado = MutableStateFlow<QrResultado?>(null)
+    val resultado = _resultado.asStateFlow()
 
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
@@ -22,27 +25,50 @@ class EscaneoQRViewModel(private val apiService: ApiService) : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
 
-    fun procesarCodigoEscaneado(codigo: String) {
-        // Evitamos peticiones duplicadas si ya estamos buscando
-        if (_isSearching.value) return
-
+    fun procesarCodigoEscaneado(context: Context, codigo: String, rol: String) {
         viewModelScope.launch {
             _isSearching.value = true
             _errorMessage.value = null
+            _resultado.value = null
 
             try {
-                // Limpiamos cualquier resultado previo antes de buscar
-                _bienEncontrado.value = null
+                val activoId = codigo.filter { it.isDigit() }.toLongOrNull()
+                    ?: run {
+                        _errorMessage.value = "QR no válido: no contiene un ID de activo"
+                        return@launch
+                    }
 
-                val response = apiService.getBienByEtiqueta(codigo)
+                val api = RetrofitClient.create(context)
 
-                if (response != null) {
-                    _bienEncontrado.value = response
-                } else {
-                    _errorMessage.value = "El producto no existe en el inventario"
+                when (rol.uppercase()) {
+                    "TECNICO" -> {
+                        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                        val tecnicoId = prefs.getLong("idUsuario", 0L)
+                        val mantenimientos = api.getMantenimientosByTecnico(tecnicoId)
+                        val mant = mantenimientos.firstOrNull {
+                            it.reporte?.activo?.idActivo == activoId &&
+                                    it.estatus in listOf("PENDIENTE", "EN_PROCESO")
+                        }
+                        if (mant != null) {
+                            _resultado.value = QrResultado.MantenimientoAsignado(mant.idMantenimiento)
+                        } else {
+                            _errorMessage.value = "No tienes un mantenimiento activo para este activo"
+                        }
+                    }
+                    else -> {
+                        val resguardo = api.verificarResguardoQR(activoId)
+                        _resultado.value = QrResultado.ResguardoPendiente(
+                            activoId = activoId,
+                            resguardoId = resguardo.idResguardo
+                        )
+                    }
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Error de conexión con el servidor"
+                _errorMessage.value = when {
+                    e.message?.contains("404") == true -> "No tienes un resguardo pendiente para este activo"
+                    e.message?.contains("403") == true -> "No tienes permiso para este activo"
+                    else -> "Error de conexión con el servidor"
+                }
             } finally {
                 _isSearching.value = false
             }
@@ -50,19 +76,7 @@ class EscaneoQRViewModel(private val apiService: ApiService) : ViewModel() {
     }
 
     fun resetScanner() {
-        _bienEncontrado.value = null
+        _resultado.value = null
         _errorMessage.value = null
-    }
-
-    // FACTORY para inyectar el ApiService correctamente
-    class Factory(private val context: Context) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(EscaneoQRViewModel::class.java)) {
-                val apiService = RetrofitClient.create(context)
-                @Suppress("UNCHECKED_CAST")
-                return EscaneoQRViewModel(apiService) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
     }
 }
