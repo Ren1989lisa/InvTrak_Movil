@@ -2,7 +2,10 @@ package com.example.integradora5d.viewmodel
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.integradora5d.data.model.BienRegistrado
@@ -33,25 +36,23 @@ class BienRegistradoViewModel : ViewModel() {
             estaCargando = true
             try {
                 val api = RetrofitClient.create(context)
-                val respuesta = api.getBienesReales()
+                val respuesta = api.getActivos()
 
-                if (respuesta.isNotEmpty()) {
-                    val listaMapeada = respuesta.map { producto ->
-                        BienRegistrado(
-                            // GUARDAMOS EL ID NUMÉRICO REAL AQUÍ
-                            idOriginal = producto.id_producto.toLong(),
-                            etiqueta = "ID: ${producto.id_producto}",
-                            tipo = "Activo",
-                            descripcion = producto.nombre ?: "Sin nombre",
-                            fechaAlta = "N/A",
-                            ubicacion = producto.descripcion ?: "Sin ubicación",
-                            costo = "$0.00",
-                            estado = producto.estatus ?: "DISPONIBLE"
-                        )
-                    }
-                    bienesRegistrados.clear()
-                    bienesRegistrados.addAll(listaMapeada)
+                val listaMapeada = respuesta.map { activo ->
+                    BienRegistrado(
+                        idOriginal = activo.idActivo,
+                        etiqueta = activo.etiquetaBien ?: "Activo ${activo.idActivo}",
+                        tipo = activo.productoNombre.ifBlank { "Activo" },
+                        descripcion = activo.descripcion ?: "Sin descripcion",
+                        fechaAlta = activo.fechaAlta ?: "N/A",
+                        ubicacion = activo.ubicacionCompleta.ifBlank { "Sin ubicacion" },
+                        costo = activo.costo?.let { "$${"%.2f".format(it)}" } ?: "N/A",
+                        estado = activo.estatus ?: "DISPONIBLE"
+                    )
                 }
+
+                bienesRegistrados.clear()
+                bienesRegistrados.addAll(listaMapeada)
             } catch (e: Exception) {
                 Log.e("API_ERROR", "Error en cargarBienes: ${e.message}")
             } finally {
@@ -69,10 +70,9 @@ class BienRegistradoViewModel : ViewModel() {
 
                 val listaMapeada = usuarios.map { user ->
                     BienRegistrado(
-                        // Para usuarios, si no hay ID de producto, usamos 0 o su ID de usuario
                         idOriginal = 0L,
                         etiqueta = user.nombre ?: "Usuario",
-                        tipo = "Técnico",
+                        tipo = "Tecnico",
                         descripcion = user.correo ?: "",
                         fechaAlta = "N/A",
                         ubicacion = user.area ?: "General",

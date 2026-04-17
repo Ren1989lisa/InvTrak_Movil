@@ -8,17 +8,61 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Label
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -30,8 +74,10 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.integradora5d.data.model.PrioridadResponse
 import com.example.integradora5d.ui.components.DrawerMenuUsuario
 import com.example.integradora5d.viewmodel.ReporteViewModel
+import com.example.integradora5d.viewmodel.ResguardoViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -45,27 +91,37 @@ fun CrearReporte(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = androidx.compose.material3.DrawerValue.Closed)
     val scrollState = rememberScrollState()
 
-    // --- ESTADOS DE LA UI ---
     var etiqueta by remember { mutableStateOf("") }
     var activoId by remember { mutableStateOf<Long?>(null) }
     var descripcion by remember { mutableStateOf("") }
+    var prioridadSeleccionada by remember { mutableStateOf<PrioridadResponse?>(null) }
     var showSuccess by remember { mutableStateOf(false) }
     var showImageOptions by remember { mutableStateOf(false) }
     var showBienSelector by remember { mutableStateOf(false) }
+    var showPrioridadSelector by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val selectorSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val prioridadSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val imagenes = remember { mutableStateListOf<Uri>() }
 
-    // Cargar resguardos del usuario para el selector
-    val resguardoVM: com.example.integradora5d.viewmodel.ResguardoViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val resguardoVM: ResguardoViewModel = viewModel()
     val resguardos by resguardoVM.resguardos.collectAsState()
-    LaunchedEffect(Unit) { resguardoVM.cargarResguardos(context) }
     val bienesResguardados = resguardos.filter { it.confirmado }
 
-    // --- CONFIGURACIÓN DE CAPTURA DE IMAGEN ---
+    LaunchedEffect(Unit) {
+        resguardoVM.cargarResguardos(context)
+        viewModel.cargarPrioridades(context)
+    }
+
+    LaunchedEffect(viewModel.prioridades.size) {
+        if (prioridadSeleccionada == null && viewModel.prioridades.isNotEmpty()) {
+            prioridadSeleccionada = viewModel.prioridades.first()
+        }
+    }
+
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? -> uri?.let { imagenes.add(it) } }
@@ -93,7 +149,6 @@ fun CrearReporte(
         }
     }
 
-    // Colores originales (Respetados)
     val azulOscuroBarra = Color(0xFF0A4174)
     val azulTextoLabel = Color(0xFF4A6982)
     val azulBordeInput = Color(0xFF8DB6C7)
@@ -103,7 +158,6 @@ fun CrearReporte(
     val rojoCancelar = Color(0xFFF04C4C)
     val azulEnviar = Color(0xFF5491A5)
 
-    // Manejo de errores del servidor
     LaunchedEffect(viewModel.mensajeError) {
         viewModel.mensajeError?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
@@ -119,25 +173,85 @@ fun CrearReporte(
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)) {
                 Text(
-                    "Selecciona el bien a reportar",
+                    text = "Selecciona el bien a reportar",
                     modifier = Modifier.padding(16.dp),
                     fontWeight = FontWeight.Bold,
                     color = azulOscuroBarra
                 )
                 if (bienesResguardados.isEmpty()) {
-                    Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text("No tienes bienes resguardados", color = Color.Gray)
                     }
                 } else {
                     bienesResguardados.forEach { resguardo ->
                         ListItem(
-                            headlineContent = { Text(resguardo.activo?.etiquetaBien ?: "Sin etiqueta", fontWeight = FontWeight.Medium) },
-                            supportingContent = { Text(resguardo.activo?.producto?.nombre ?: "", color = Color.Gray, fontSize = 12.sp) },
+                            headlineContent = {
+                                Text(
+                                    resguardo.activo?.etiquetaBien ?: "Sin etiqueta",
+                                    fontWeight = FontWeight.Medium
+                                )
+                            },
+                            supportingContent = {
+                                Text(
+                                    resguardo.activo?.producto?.nombre ?: "",
+                                    color = Color.Gray,
+                                    fontSize = 12.sp
+                                )
+                            },
                             leadingContent = { Icon(Icons.Outlined.Label, null, tint = azulIconoSubir) },
                             modifier = Modifier.clickable {
                                 etiqueta = resguardo.activo?.etiquetaBien ?: ""
                                 activoId = resguardo.activo?.idActivo
                                 showBienSelector = false
+                            }
+                        )
+                        HorizontalDivider()
+                    }
+                }
+            }
+        }
+    }
+
+    if (showPrioridadSelector) {
+        ModalBottomSheet(
+            onDismissRequest = { showPrioridadSelector = false },
+            sheetState = prioridadSheetState,
+            containerColor = Color.White
+        ) {
+            Column(modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)) {
+                Text(
+                    text = "Selecciona la prioridad",
+                    modifier = Modifier.padding(16.dp),
+                    fontWeight = FontWeight.Bold,
+                    color = azulOscuroBarra
+                )
+                if (viewModel.prioridades.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No hay prioridades disponibles", color = Color.Gray)
+                    }
+                } else {
+                    viewModel.prioridades.forEach { prioridad ->
+                        ListItem(
+                            headlineContent = {
+                                Text(
+                                    prioridad.nombre?.replace('_', ' ') ?: "Sin nombre",
+                                    fontWeight = FontWeight.Medium
+                                )
+                            },
+                            supportingContent = {
+                                val idText = "ID ${prioridad.idPrioridad}"
+                                Text(idText, color = Color.Gray, fontSize = 12.sp)
+                            },
+                            leadingContent = { Icon(Icons.Outlined.Warning, null, tint = azulIconoSubir) },
+                            modifier = Modifier.clickable {
+                                prioridadSeleccionada = prioridad
+                                showPrioridadSelector = false
                             }
                         )
                         HorizontalDivider()
@@ -154,7 +268,12 @@ fun CrearReporte(
             containerColor = Color.White
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp, top = 8.dp)) {
-                Text("Seleccionar fuente", modifier = Modifier.padding(16.dp), fontWeight = FontWeight.Bold, color = azulOscuroBarra)
+                Text(
+                    "Seleccionar fuente",
+                    modifier = Modifier.padding(16.dp),
+                    fontWeight = FontWeight.Bold,
+                    color = azulOscuroBarra
+                )
                 ListItem(
                     headlineContent = { Text("Camara") },
                     leadingContent = { Icon(Icons.Default.PhotoCamera, null, tint = azulIconoSubir) },
@@ -192,22 +311,44 @@ fun CrearReporte(
                 )
             }
         ) { padding ->
-            Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+            ) {
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp).verticalScroll(scrollState)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(horizontal = 24.dp)
+                        .verticalScroll(scrollState)
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { navController.popBackStack() }) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable { navController.popBackStack() }
+                        ) {
                             Icon(Icons.Default.ArrowBack, null, tint = azulTextoLabel, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("Regresar", color = azulTextoLabel, fontSize = 16.sp)
                         }
 
                         if (showSuccess) {
-                            Surface(color = verdeExito, shape = RoundedCornerShape(12.dp), modifier = Modifier.shadow(4.dp, RoundedCornerShape(12.dp))) {
-                                Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                color = verdeExito,
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.shadow(4.dp, RoundedCornerShape(12.dp))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
                                     Icon(Icons.Default.CheckCircle, null, tint = Color.White, modifier = Modifier.size(18.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Column {
@@ -224,22 +365,30 @@ fun CrearReporte(
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Card(
-                        modifier = Modifier.fillMaxWidth().shadow(8.dp, RoundedCornerShape(16.dp)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(8.dp, RoundedCornerShape(16.dp)),
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("Bien a reportar", color = azulTextoLabel, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             Spacer(modifier = Modifier.height(8.dp))
-                            // Selector de bien resguardado
                             Surface(
-                                modifier = Modifier.fillMaxWidth().clickable { showBienSelector = true },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showBienSelector = true },
                                 shape = RoundedCornerShape(12.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, if (activoId != null) azulIconoSubir else azulBordeInput),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    if (activoId != null) azulIconoSubir else azulBordeInput
+                                ),
                                 color = Color.White
                             ) {
                                 Row(
-                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 16.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 14.dp, vertical = 16.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -258,15 +407,56 @@ fun CrearReporte(
 
                             Spacer(modifier = Modifier.height(16.dp))
 
+                            Text("Prioridad", color = azulTextoLabel, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showPrioridadSelector = true },
+                                shape = RoundedCornerShape(12.dp),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    if (prioridadSeleccionada != null) azulIconoSubir else azulBordeInput
+                                ),
+                                color = Color.White
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 14.dp, vertical = 16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Outlined.Warning, null, tint = azulIconoSubir, modifier = Modifier.size(20.dp))
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            prioridadSeleccionada?.nombre?.replace('_', ' ')
+                                                ?: if (viewModel.prioridades.isEmpty()) "Cargando prioridades..." else "Selecciona la prioridad",
+                                            color = if (prioridadSeleccionada == null) Color.Gray.copy(0.6f) else azulTextoLabel,
+                                            fontSize = 14.sp
+                                        )
+                                    }
+                                    Icon(Icons.Default.KeyboardArrowDown, null, tint = azulIconoSubir)
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
                             Text("Descripcion de problema", color = azulTextoLabel, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             Spacer(modifier = Modifier.height(8.dp))
                             OutlinedTextField(
                                 value = descripcion,
                                 onValueChange = { descripcion = it },
                                 placeholder = { Text("Describa el problema en detalle...", color = Color.Gray.copy(0.6f)) },
-                                modifier = Modifier.fillMaxWidth().height(120.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(120.dp),
                                 shape = RoundedCornerShape(12.dp),
-                                colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = azulBordeInput, focusedBorderColor = azulIconoSubir)
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    unfocusedBorderColor = azulBordeInput,
+                                    focusedBorderColor = azulIconoSubir
+                                )
                             )
 
                             Spacer(modifier = Modifier.height(16.dp))
@@ -275,29 +465,48 @@ fun CrearReporte(
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Box(
-                                modifier = Modifier.fillMaxWidth().height(140.dp).background(azulBotonSubir, RoundedCornerShape(12.dp)).border(1.dp, azulIconoSubir, RoundedCornerShape(12.dp)).clickable { showImageOptions = true },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(140.dp)
+                                    .background(azulBotonSubir, RoundedCornerShape(12.dp))
+                                    .border(1.dp, azulIconoSubir, RoundedCornerShape(12.dp))
+                                    .clickable { showImageOptions = true },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Icon(Icons.Outlined.CloudUpload, null, tint = azulIconoSubir, modifier = Modifier.size(48.dp))
                                     Text(
                                         if (imagenes.isEmpty()) "Toca para seleccionar una imagen" else "${imagenes.size} imagen(es) seleccionada(s)",
-                                        color = azulIconoSubir, fontSize = 14.sp
+                                        color = azulIconoSubir,
+                                        fontSize = 14.sp
                                     )
                                 }
                             }
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
                                 repeat(3) { index ->
                                     val isFilled = index < imagenes.size
                                     Box(
-                                        modifier = Modifier.size(70.dp).background(azulBotonSubir, RoundedCornerShape(8.dp)).border(1.dp, if(isFilled) azulIconoSubir else azulIconoSubir.copy(0.3f), RoundedCornerShape(8.dp)),
+                                        modifier = Modifier
+                                            .size(70.dp)
+                                            .background(azulBotonSubir, RoundedCornerShape(8.dp))
+                                            .border(
+                                                1.dp,
+                                                if (isFilled) azulIconoSubir else azulIconoSubir.copy(0.3f),
+                                                RoundedCornerShape(8.dp)
+                                            ),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        if (isFilled) Icon(Icons.Outlined.Image, null, tint = azulIconoSubir)
-                                        else Icon(Icons.Outlined.Image, null, tint = azulIconoSubir.copy(0.3f))
+                                        if (isFilled) {
+                                            Icon(Icons.Outlined.Image, null, tint = azulIconoSubir)
+                                        } else {
+                                            Icon(Icons.Outlined.Image, null, tint = azulIconoSubir.copy(0.3f))
+                                        }
                                     }
                                 }
                             }
@@ -306,10 +515,17 @@ fun CrearReporte(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Row(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
                         Button(
                             onClick = { navController.popBackStack() },
-                            modifier = Modifier.weight(1f).height(50.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = rojoCancelar),
                             shape = RoundedCornerShape(12.dp),
                             enabled = !viewModel.estaCargando
@@ -319,10 +535,11 @@ fun CrearReporte(
 
                         Button(
                             onClick = {
-                                if (activoId != null && descripcion.isNotBlank() && imagenes.isNotEmpty()) {
+                                if (activoId != null && prioridadSeleccionada != null && descripcion.isNotBlank() && imagenes.isNotEmpty()) {
                                     viewModel.enviarReporte(
                                         context = context,
                                         activoId = activoId!!,
+                                        prioridadId = prioridadSeleccionada!!.idPrioridad,
                                         descripcion = descripcion,
                                         imagenes = imagenes.toList()
                                     ) {
@@ -336,13 +553,16 @@ fun CrearReporte(
                                 } else {
                                     val msg = when {
                                         activoId == null -> "Selecciona el bien a reportar"
-                                        descripcion.isBlank() -> "La descripción del problema es obligatoria"
+                                        prioridadSeleccionada == null -> "Selecciona la prioridad"
+                                        descripcion.isBlank() -> "La descripcion del problema es obligatoria"
                                         else -> "Debes adjuntar al menos una foto"
                                     }
                                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                                 }
                             },
-                            modifier = Modifier.weight(1f).height(50.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = azulEnviar),
                             shape = RoundedCornerShape(12.dp),
                             enabled = !viewModel.estaCargando

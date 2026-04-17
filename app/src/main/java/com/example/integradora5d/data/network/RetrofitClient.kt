@@ -6,8 +6,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    // El backend expone sus endpoints REST bajo /api/*
-    private const val BASE_URL = "http://192.168.0.24:8085/api/"
+    private const val BASE_URL = "http://192.168.100.6:8085/api/"
 
     fun create(context: Context): ApiService {
         val client = OkHttpClient.Builder()
@@ -19,6 +18,17 @@ object RetrofitClient {
     fun createPublic(): ApiService {
         val client = OkHttpClient.Builder().build()
         return buildRetrofit(client)
+    }
+
+    fun getAuthenticatedOkHttpClient(context: Context): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(AuthInterceptor(context))
+            .build()
+    }
+
+    fun buildUrl(relativePath: String): String {
+        val normalizedPath = relativePath.removePrefix("/")
+        return BASE_URL + normalizedPath
     }
 
     private fun buildRetrofit(client: OkHttpClient): ApiService {

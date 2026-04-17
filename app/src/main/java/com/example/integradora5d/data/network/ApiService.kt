@@ -29,6 +29,9 @@ interface ApiService {
     @GET("usuario/perfil")
     suspend fun getPerfilPropio(): PerfilResponse
 
+    @GET("prioridad")
+    suspend fun getPrioridades(): List<PrioridadResponse>
+
     @GET("historial/{etiqueta}")
     suspend fun getHistorialByEtiqueta(@Path("etiqueta") etiqueta: String): List<BienRegistrado>
 
